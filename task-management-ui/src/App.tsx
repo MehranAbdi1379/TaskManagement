@@ -1,35 +1,43 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from "react";
+import { Button, Text } from "@chakra-ui/react";
+import { getTasks } from "./api/taskApi";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
+  const [data, setData] = useState<
+    [{ title: string; description: string; state: string }]
+  >([{ title: "", description: "", state: "" }]);
+  console.log(data);
 
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <Text>{count}</Text>
+        <Button
+          onClick={() => {
+            setCount(count + 3);
+          }}
+        >
+          Much more
+        </Button>
+        <Button
+          onClick={async () => {
+            setData(await getTasks());
+          }}
+        >
+          Send API
+        </Button>
+        {data.map((item, index) => (
+          <Text>
+            <Text>{index}</Text>
+            <Text>{item.title}</Text>
+            <Text>{item.state}</Text>
+            <Text>{item.description}</Text>
+          </Text>
+        ))}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
