@@ -1,43 +1,29 @@
-import { useEffect, useState } from "react";
-import { Button, Text } from "@chakra-ui/react";
-import { getTasks } from "./api/taskApi";
+import React, { useEffect } from "react";
+import { Box, Center, Spinner } from "@chakra-ui/react";
+import useTaskStore from "./store/useTaskStore";
+import TaskList from "./components/TaskList";
 
-function App() {
-  const [count, setCount] = useState(0);
-  const [data, setData] = useState<
-    [{ title: string; description: string; state: string }]
-  >([{ title: "", description: "", state: "" }]);
-  console.log(data);
+const App: React.FC = () => {
+  const fetchTasks = useTaskStore((state) => state.getTasks);
+  const loading = useTaskStore((state) => state.loading);
+
+  useEffect(() => {
+    fetchTasks(); // Fetch tasks from API when app loads
+  }, [fetchTasks]);
+
+  if (loading) {
+    return (
+      <Center height="100vh">
+        <Spinner size="xl" color="blue.500" thickness="4px" speed="0.65s" />
+      </Center>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <Text>{count}</Text>
-        <Button
-          onClick={() => {
-            setCount(count + 3);
-          }}
-        >
-          Much more
-        </Button>
-        <Button
-          onClick={async () => {
-            setData(await getTasks());
-          }}
-        >
-          Send API
-        </Button>
-        {data.map((item, index) => (
-          <Text>
-            <Text>{index}</Text>
-            <Text>{item.title}</Text>
-            <Text>{item.state}</Text>
-            <Text>{item.description}</Text>
-          </Text>
-        ))}
-      </div>
-    </>
+    <Box p={4}>
+      <TaskList />
+    </Box>
   );
-}
+};
 
 export default App;
