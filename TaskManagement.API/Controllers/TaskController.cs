@@ -43,7 +43,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTaskAsync(string title, string? description, string status)
+        public async Task<IActionResult> AddTaskAsync(string? title, string? description, string? status)
         {
             try
             {
@@ -78,7 +78,7 @@ namespace TaskManagement.API.Controllers
 
         }
 
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTaskAsync(int id)
         {
             try

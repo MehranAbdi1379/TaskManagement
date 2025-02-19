@@ -1,20 +1,32 @@
 import axiosInstance from "./axiosInstance";
 
-export const getTasks = async () => {
-  const response = await axiosInstance.get("/task");
+export interface Task {
+  id: number;
+  title: string;
+  description: string;
+  status: string;
+}
+
+export const getTasks = async (): Promise<Task[]> => {
+  const response = await axiosInstance.get<Task[]>("/task");
   return response.data;
 };
 
-export const createTask = async (task: any) => {
+export const getTaskById = async (id: number): Promise<Task> => {
+  const response = await axiosInstance.get("/task/".concat(String(id)));
+  return response.data;
+};
+
+export const createTask = async (task: Omit<Task, "id">): Promise<Task> => {
   const response = await axiosInstance.post("/task", task);
   return response.data;
 };
 
-export const updateTask = async (task: any) => {
+export const updateTask = async (task: Task): Promise<Task> => {
   const response = await axiosInstance.put("/task", task);
   return response.data;
 };
 
-export const deleteTask = async (id: number) => {
-  await axiosInstance.delete("/task/" + String(id));
+export const deleteTask = async (id: number): Promise<void> => {
+  await axiosInstance.delete("/task/".concat(String(id)));
 };
