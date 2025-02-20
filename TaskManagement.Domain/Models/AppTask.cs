@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Exceptions;
 
 namespace TaskManagement.Domain.Models
@@ -11,13 +12,18 @@ namespace TaskManagement.Domain.Models
     {
         public string Title { get; private set; }
         public string Description { get; private set; }
-        public string Status { get; private set; }
+        public Status Status { get; private set; }
 
-        public AppTask(string title, string description, string status)
+        public AppTask()
+        {
+
+        }
+
+        public AppTask(string title, string description, Status taskStatus)
         {
             SetTitle(title);
             SetDescription(description);
-            SetStatus(status);
+            SetStatus(taskStatus);
         }
 
         public void SetTitle(string title)
@@ -31,10 +37,9 @@ namespace TaskManagement.Domain.Models
             Description = description;
         }
 
-        public void SetStatus(string status)
+        public void SetStatus(Status taskStatus)
         {
-            if (string.IsNullOrEmpty(status)) throw new DomainException("Status of the task can not be empty.");
-            Status = status;
+            Status = taskStatus;
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using TaskManagement.Domain.Models;
+﻿using TaskManagement.Domain.Enums;
+using TaskManagement.Domain.Models;
 
 namespace TaskManagement.Service.Interfaces
 {
@@ -9,5 +10,6 @@ namespace TaskManagement.Service.Interfaces
         Task<List<AppTask>> GetAllTasksAsync();
         Task<AppTask> GetTaskByIdAsync(int id);
         Task<AppTask> UpdateTaskAsync(AppTask entity);
+        Task<AppTask> UpdateTaskStatusAsync(int id, Status taskStatus);
     }
 }

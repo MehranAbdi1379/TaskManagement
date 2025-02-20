@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.Interfaces;
 
@@ -43,7 +44,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTaskAsync(string? title, string? description, string? status)
+        public async Task<IActionResult> AddTaskAsync(string? title, string? description, Status status)
         {
             try
             {
@@ -57,14 +58,26 @@ namespace TaskManagement.API.Controllers
             }
         }
 
+        [HttpPatch]
+        public async Task<IActionResult> UpdateTaskStateAsync(int id, Status status)
+        {
+            try
+            {
+                return Ok(await taskService.UpdateTaskStatusAsync(id,status));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPut]
-        public async Task<IActionResult> UpdateTaskAsync(int id ,string? title, string? description, string? status)
+        public async Task<IActionResult> UpdateTaskAsync(int id ,string? title, string? description, Status status)
         {
             try
             {
                 var task = await taskService.GetTaskByIdAsync(id);
                 if(!string.IsNullOrEmpty(description)) task.SetDescription(description);
-                if (!string.IsNullOrEmpty(status)) task.SetStatus(status);
                 if(!string.IsNullOrEmpty(title)) task.SetTitle(title);
                 task.UpdatedAt = DateTime.Now;
 

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace TaskManegement.Domain.Test.ModelTests
 {
     using System;
+    using TaskManagement.Domain.Enums;
     using TaskManagement.Domain.Exceptions;
     using TaskManagement.Domain.Models;
     using Xunit;
@@ -19,35 +20,27 @@ namespace TaskManegement.Domain.Test.ModelTests
             public void Constructor_Should_CreateTask_When_ValidDataIsProvided()
             {
                 // Arrange & Act
-                var task = new AppTask("Test Task", "This is a test description.", "Pending");
+                var task = new AppTask("Test Task", "This is a test description.", Status.Pending);
 
                 // Assert
                 Assert.Equal("Test Task", task.Title);
                 Assert.Equal("This is a test description.", task.Description);
-                Assert.Equal("Pending", task.Status);
+                Assert.Equal(Status.Pending, task.Status);
             }
 
             [Fact]
             public void Constructor_Should_ThrowDomainException_When_TitleIsEmpty()
             {
                 // Act & Assert
-                var exception = Assert.Throws<DomainException>(() => new AppTask("", "Description", "Pending"));
+                var exception = Assert.Throws<DomainException>(() => new AppTask("", "Description", Status.Pending));
                 Assert.Equal("Title of the task can not be empty.", exception.Message);
-            }
-
-            [Fact]
-            public void Constructor_Should_ThrowDomainException_When_StatusIsEmpty()
-            {
-                // Act & Assert
-                var exception = Assert.Throws<DomainException>(() => new AppTask("Task", "Description", ""));
-                Assert.Equal("Status of the task can not be empty.", exception.Message);
             }
 
             [Fact]
             public void SetTitle_Should_UpdateTitle_When_ValidTitleIsProvided()
             {
                 // Arrange
-                var task = new AppTask("Old Title", "Description", "Pending");
+                var task = new AppTask("Old Title", "Description", Status.Pending);
 
                 // Act
                 task.SetTitle("New Title");
@@ -60,7 +53,7 @@ namespace TaskManegement.Domain.Test.ModelTests
             public void SetTitle_Should_ThrowDomainException_When_TitleIsEmpty()
             {
                 // Arrange
-                var task = new AppTask("Old Title", "Description", "Pending");
+                var task = new AppTask("Old Title", "Description", Status.Pending);
 
                 // Act & Assert
                 var exception = Assert.Throws<DomainException>(() => task.SetTitle(""));
@@ -71,31 +64,20 @@ namespace TaskManegement.Domain.Test.ModelTests
             public void SetStatus_Should_UpdateStatus_When_ValidStatusIsProvided()
             {
                 // Arrange
-                var task = new AppTask("Task", "Description", "Pending");
+                var task = new AppTask("Task", "Description", Status.Pending);
 
                 // Act
-                task.SetStatus("Completed");
+                task.SetStatus(Status.Completed);
 
                 // Assert
-                Assert.Equal("Completed", task.Status);
-            }
-
-            [Fact]
-            public void SetStatus_Should_ThrowDomainException_When_StatusIsEmpty()
-            {
-                // Arrange
-                var task = new AppTask("Task", "Description", "Pending");
-
-                // Act & Assert
-                var exception = Assert.Throws<DomainException>(() => task.SetStatus(""));
-                Assert.Equal("Status of the task can not be empty.", exception.Message);
+                Assert.Equal(Status.Completed, task.Status);
             }
 
             [Fact]
             public void SetDescription_Should_UpdateDescription()
             {
                 // Arrange
-                var task = new AppTask("Task", "Old Description", "Pending");
+                var task = new AppTask("Task", "Old Description", Status.Pending);
 
                 // Act
                 task.SetDescription("New Description");

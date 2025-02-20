@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
 using TaskManagement.Service.Interfaces;
@@ -40,6 +41,13 @@ namespace TaskManagement.Service.Services
         public async Task DeleteTaskByIdAsync(int id)
         {
             await baseRepository.DeleteAsync(id);
+        }
+
+        public async Task<AppTask> UpdateTaskStatusAsync(int id, Status taskStatus)
+        {
+            var task = await baseRepository.GetByIdAsync(id);
+            task.SetStatus(taskStatus);
+            return await baseRepository.UpdateAsync(task);
         }
     }
 }
