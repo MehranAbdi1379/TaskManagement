@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Button, Text } from "@chakra-ui/react";
 import useTaskStore from "../store/useTaskStore";
+import { Status } from "../api/taskApi";
 
 const TaskList: React.FC = () => {
   const { tasks, removeTask } = useTaskStore(); // Get global state
@@ -14,7 +15,7 @@ const TaskList: React.FC = () => {
           <Box key={task.id} p={4} borderWidth="1px" borderRadius="md" mb={2}>
             <Text fontWeight="bold">{task.title}</Text>
             <Text>Description: {task.description}</Text>
-            <Text>Status: {task.status}</Text>
+            <Text>Status: {Status[task.status]}</Text>
             <Button
               mt={2}
               colorScheme="red"

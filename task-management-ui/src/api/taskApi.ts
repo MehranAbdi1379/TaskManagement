@@ -4,7 +4,14 @@ export interface Task {
   id: number;
   title: string;
   description: string;
-  status: string;
+  status: Status;
+}
+
+export enum Status {
+  Pending,
+  InProgress,
+  Completed,
+  Cancelled,
 }
 
 export const getTasks = async (): Promise<Task[]> => {
