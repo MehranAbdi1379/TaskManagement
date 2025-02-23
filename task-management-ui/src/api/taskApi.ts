@@ -7,6 +7,21 @@ export interface Task {
   status: Status;
 }
 
+export interface TaskQueryParameters {
+  pageNumber: number;
+  pageSize: number;
+  status?: Status;
+  sortOrder: "asc" | "desc";
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  totalPages: number;
+  currentPage: number;
+  pageSize: number;
+}
+
 export enum Status {
   Pending,
   InProgress,
@@ -14,8 +29,12 @@ export enum Status {
   Cancelled,
 }
 
-export const getTasks = async (): Promise<Task[]> => {
-  const response = await axiosInstance.get<Task[]>("/task");
+export const getTasks = async (
+  params: TaskQueryParameters
+): Promise<PagedResult<Task>> => {
+  const response = await axiosInstance.get<PagedResult<Task>>("/task", {
+    params,
+  });
   return response.data;
 };
 
