@@ -5,12 +5,13 @@ import {
   updateTask,
   deleteTask,
   Task,
+  TaskQueryParameters,
 } from "../api/taskApi";
 
 interface TaskStore {
   tasks: Task[];
   loading: boolean;
-  getTasks: () => Promise<void>;
+  getTasks: (parameters: TaskQueryParameters) => Promise<void>;
   addTask: (task: Omit<Task, "id">) => Promise<void>;
   updateTask: (task: Task) => Promise<void>;
   removeTask: (taskId: number) => Promise<void>;
@@ -21,10 +22,10 @@ const useTaskStore = create<TaskStore>((set) => ({
   tasks: [],
   loading: true,
 
-  getTasks: async () => {
+  getTasks: async (parameters: TaskQueryParameters) => {
     try {
-      const tasks = await getTasks();
-      set({ tasks });
+      const tasks = await getTasks(parameters);
+      set({ tasks: tasks.items });
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
