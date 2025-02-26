@@ -63,6 +63,7 @@ namespace TaskManagement.Service.Services
         {
             var task = await baseRepository.GetByIdAsync(dto.Id);
             task.SetStatus(dto.Status);
+            task.UpdatedAt = DateTime.Now;
             await baseRepository.UpdateAsync(task);
             return mapper.Map<TaskResponseDto>(task);
         }
