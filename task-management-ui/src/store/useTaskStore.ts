@@ -6,6 +6,8 @@ import {
   deleteTask,
   Task,
   TaskQueryParameters,
+  Status,
+  updateTaskStatus,
 } from "../api/taskApi";
 
 interface TaskStore {
@@ -13,7 +15,8 @@ interface TaskStore {
   loading: boolean;
   getTasks: (parameters: TaskQueryParameters) => Promise<void>;
   addTask: (task: Omit<Task, "id">) => Promise<void>;
-  updateTask: (task: Task) => Promise<void>;
+  updateTask: (task: Omit<Task, "createdAt">) => Promise<void>;
+  updateTaskStatus: (id: number, status: Status) => Promise<void>;
   removeTask: (taskId: number) => Promise<void>;
 }
 
@@ -52,6 +55,19 @@ const useTaskStore = create<TaskStore>((set) => ({
       }));
     } catch (error) {
       console.error("Error updating task:", error);
+    }
+  },
+
+  updateTaskStatus: async (id, status) => {
+    try {
+      const updatedTask = await updateTaskStatus(id, status);
+      set((state) => ({
+        tasks: state.tasks.map((t) =>
+          t.id === updatedTask.id ? updatedTask : t
+        ),
+      }));
+    } catch (error) {
+      console.error("Error updating task status:", error);
     }
   },
 

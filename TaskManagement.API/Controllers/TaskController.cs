@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
+using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.Interfaces;
 
 namespace TaskManagement.API.Controllers
@@ -16,92 +17,43 @@ namespace TaskManagement.API.Controllers
             this.taskService = taskService;
         }
         [HttpGet]
-        public async Task<IActionResult> GetAllTasksAsync()
+        public async Task<IActionResult> GetAllTasksAsync([FromQuery] TaskQueryParameters parameters)
         {
-            try
-            {
-                var tasks = await taskService.GetAllTasksAsync();
-                return Ok(tasks);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var tasks = await taskService.GetAllTasksAsync(parameters);
+            return Ok(tasks);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetTaskByIdAsync(int id)
         {
-            try
-            {
-                var task = await taskService.GetTaskByIdAsync(id);
-                return Ok(task);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var task = await taskService.GetTaskByIdAsync(id);
+            return Ok(task);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTaskAsync(string? title, string? description, Status status)
+        public async Task<IActionResult> AddTaskAsync(CreateTaskDto dto)
         {
-            try
-            {
-                var task = new AppTask(title,description,status);
-                task = await taskService.CreateTaskAsync(task);
-                return Ok(task);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            var task = await taskService.CreateTaskAsync(dto);
+            return Ok(task);
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateTaskStateAsync(int id, Status status)
+        public async Task<IActionResult> UpdateTaskStateAsync(UpdateTaskStatusDto dto)
         {
-            try
-            {
-                return Ok(await taskService.UpdateTaskStatusAsync(id,status));
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            return Ok(await taskService.UpdateTaskStatusAsync(dto));
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateTaskAsync(int id ,string? title, string? description, Status status)
+        public async Task<IActionResult> UpdateTaskAsync(UpdateTaskDto dto)
         {
-            try
-            {
-                var task = await taskService.GetTaskByIdAsync(id);
-                if(!string.IsNullOrEmpty(description)) task.SetDescription(description);
-                if(!string.IsNullOrEmpty(title)) task.SetTitle(title);
-                task.UpdatedAt = DateTime.Now;
-
-                task = await taskService.UpdateTaskAsync(task);
-                return Ok(task);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-
+            var task = await taskService.UpdateTaskAsync(dto);
+            return Ok(task);
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTaskAsync(int id)
         {
-            try
-            {
-                await taskService.DeleteTaskByIdAsync(id);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            await taskService.DeleteTaskByIdAsync(id);
             return Ok();
         }
     }
