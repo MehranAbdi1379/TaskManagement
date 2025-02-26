@@ -39,6 +39,7 @@ namespace TaskManagement.Domain.Models
 
         public void SetStatus(Status taskStatus)
         {
+            if ((int)taskStatus < 0 || (int)taskStatus > 3) throw new DomainException("Task Status Code should be between 0 and 3");
             Status = taskStatus;
         }
     }

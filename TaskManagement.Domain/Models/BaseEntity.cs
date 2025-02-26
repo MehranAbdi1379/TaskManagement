@@ -15,6 +15,7 @@ namespace TaskManagement.Domain.Models
         public BaseEntity()
         {
             CreatedAt = DateTime.Now;
+            UpdatedAt = DateTime.Now;
             Id = 0;
             Deleted = false;
         }
