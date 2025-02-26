@@ -61,10 +61,20 @@ const Navbar: React.FC = () => {
 
       <Button
         leftIcon={<FiLogIn />}
-        colorScheme="teal"
+        colorScheme="green"
         variant="solid"
         size="md"
-        _hover={{ bg: "teal.500" }}
+        _hover={{ bg: "green.300" }}
+        marginRight={5}
+      >
+        Register
+      </Button>
+      <Button
+        leftIcon={<FiLogIn />}
+        colorScheme="green"
+        variant="solid"
+        size="md"
+        _hover={{ bg: "green.300" }}
       >
         Login
       </Button>

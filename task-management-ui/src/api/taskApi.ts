@@ -5,6 +5,7 @@ export interface Task {
   title: string;
   description: string;
   status: Status;
+  createdAt: Date;
 }
 
 export interface TaskQueryParameters {
@@ -48,8 +49,18 @@ export const createTask = async (task: Omit<Task, "id">): Promise<Task> => {
   return response.data;
 };
 
-export const updateTask = async (task: Task): Promise<Task> => {
+export const updateTask = async (
+  task: Omit<Task, "createdAt">
+): Promise<Task> => {
   const response = await axiosInstance.put("/task", task);
+  return response.data;
+};
+
+export const updateTaskStatus = async (
+  id: number,
+  status: Status
+): Promise<Task> => {
+  const response = await axiosInstance.patch("/task", { id, status });
   return response.data;
 };
 

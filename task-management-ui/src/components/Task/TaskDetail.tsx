@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -8,14 +8,27 @@ import {
   VStack,
   HStack,
   Icon,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from "@chakra-ui/react";
 import { InfoIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
 import { getStatusLabel, statusColors, statusIcons } from "./Task";
+import { format } from "date-fns";
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate(); // To navigate after task deletion
+  const navigate = useNavigate();
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const cancelRef = useRef<HTMLButtonElement>(
+    null
+  ) as React.RefObject<HTMLButtonElement>;
+
   const task = useTaskStore((state) =>
     state.tasks.find((t) => t.id === Number(id))
   );
@@ -41,10 +54,15 @@ const TaskDetail: React.FC = () => {
 
   const IconComponent = statusIcons[task.status] || InfoIcon;
   const colorScheme = statusColors[task.status] || "gray";
+  const formattedDate = format(
+    new Date(task.createdAt),
+    "MMMM dd, yyyy h:mm a"
+  );
 
   const handleDelete = () => {
-    useTaskStore.getState().removeTask(task.id); // Removing the task
-    navigate("/"); // Navigate to the main page
+    useTaskStore.getState().removeTask(task.id); // Remove task
+    onClose(); // Close the dialog
+    navigate("/"); // Navigate back to tasks
   };
 
   return (
@@ -69,7 +87,6 @@ const TaskDetail: React.FC = () => {
             fontWeight="bold"
             flex="1"
             isTruncated
-            whiteSpace="nowrap"
             maxW="calc(100% - 140px)"
           >
             {task.title}
@@ -92,6 +109,13 @@ const TaskDetail: React.FC = () => {
           <Text color="gray.700">{task.description}</Text>
         </Box>
 
+        <Box w="100%" bg="gray.50" p={4} borderRadius="md" borderWidth="1px">
+          <Text fontSize="lg" fontWeight="semibold" mb={2}>
+            Created At:
+          </Text>
+          <Text color="gray.700">{formattedDate}</Text>
+        </Box>
+
         <HStack spacing={4} pt={4}>
           <Button
             as={RouterLink}
@@ -108,11 +132,12 @@ const TaskDetail: React.FC = () => {
             colorScheme="red"
             variant="outline"
             leftIcon={<DeleteIcon />}
-            onClick={handleDelete}
+            onClick={onOpen} // Open the confirmation dialog
             _hover={{ bg: "red.50" }}
           >
             Delete
           </Button>
+
           <Button
             as={RouterLink}
             to={`/tasks/edit/${task.id}`}
@@ -124,6 +149,36 @@ const TaskDetail: React.FC = () => {
           </Button>
         </HStack>
       </VStack>
+
+      {/* AlertDialog for confirmation */}
+      <AlertDialog
+        isOpen={isOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isCentered
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Confirm Deletion
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete this task? This action cannot be
+              undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onClose}>
+                No
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Yes
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
     </Box>
   );
 };
