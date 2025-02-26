@@ -85,6 +85,47 @@ namespace TaskManegement.Domain.Test.ModelTests
                 // Assert
                 Assert.Equal("New Description", task.Description);
             }
+
+            [Fact]
+            public void SetTitle_ShouldThrow_WhenTitleIsEmpty()
+            {
+                // Arrange
+                var task = new AppTask("Valid Title", "Description", Status.Pending);
+
+                // Act & Assert
+                var ex = Assert.Throws<DomainException>(() => task.SetTitle(""));
+                Assert.Equal("Title of the task can not be empty.", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(Status.Pending)]
+            [InlineData(Status.InProgress)]
+            [InlineData(Status.Completed)]
+            [InlineData(Status.Cancelled)]
+            public void SetStatus_ShouldUpdateStatus(Status newStatus)
+            {
+                // Arrange
+                var task = new AppTask("Task", "Description", Status.Pending);
+
+                // Act
+                task.SetStatus(newStatus);
+
+                // Assert
+                Assert.Equal(newStatus, task.Status);
+            }
+
+            [Theory]
+            [InlineData(-1)]
+            [InlineData(4)]
+            public void SetStatus_ShouldThrow_WhenStatusIsInvalid(int invalidStatus)
+            {
+                // Arrange
+                var task = new AppTask("Task", "Description", Status.Pending);
+
+                // Act & Assert
+                var ex = Assert.Throws<DomainException>(() => task.SetStatus((Status)invalidStatus));
+                Assert.Equal("Task Status Code should be between 0 and 3", ex.Message);
+            }
         }
     }
 
