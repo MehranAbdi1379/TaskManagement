@@ -12,23 +12,25 @@ import {
   Spinner,
   Flex,
   Select,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { InfoIcon, DeleteIcon } from "@chakra-ui/icons";
+import { InfoIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
 import { getStatusLabel, statusColors, statusIcons } from "./Task";
 import { Status, getTasks as getTasksApi } from "../../api/taskApi";
 
-// Map enum values to corresponding colors and icons
-
 const TaskList: React.FC = () => {
-  const { tasks, removeTask, getTasks } = useTaskStore();
+  const { tasks, getTasks, updateTaskStatus } = useTaskStore();
   const loading = useTaskStore((state) => state.loading);
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [statusFilter, setStatusFilter] = useState<Status | "">("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchTasks = async () => {
@@ -44,7 +46,12 @@ const TaskList: React.FC = () => {
       status: statusFilter || undefined,
       sortOrder,
     });
-    setTotalPages(Math.ceil(response.totalCount / pageSize));
+    setTotalPages(response.totalPages);
+  };
+
+  const handleStatusUpdate = async (taskId: number, newStatus: Status) => {
+    // Make the API call to update the task status
+    await updateTaskStatus(taskId, newStatus);
   };
 
   useEffect(() => {
@@ -74,13 +81,23 @@ const TaskList: React.FC = () => {
           colorScheme="teal"
           mb={4}
           alignSelf="flex-end"
+          shadow="md"
+          borderRadius="2xl"
+          _hover={{ shadow: "lg", transform: "translateY(-2px)" }}
         >
           Add New Task
         </Button>
+
         <Select
-          width="150px"
+          width="180px"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as Status | "")}
+          placeholder="Select Status"
+          borderRadius="2xl"
+          shadow="sm"
+          bg="white"
+          _hover={{ shadow: "md" }}
+          _focus={{ borderColor: "teal.500", shadow: "lg" }}
         >
           <option value="">All Statuses</option>
           <option value="0">Pending</option>
@@ -88,24 +105,39 @@ const TaskList: React.FC = () => {
           <option value="2">Completed</option>
           <option value="3">Cancelled</option>
         </Select>
+
         <Select
-          width="150px"
+          width="180px"
           value={sortOrder}
           onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+          placeholder="Sort By"
+          borderRadius="2xl"
+          shadow="sm"
+          bg="white"
+          _hover={{ shadow: "md" }}
+          _focus={{ borderColor: "teal.500", shadow: "lg" }}
         >
-          <option value="asc">Created (Asc)</option>
-          <option value="desc">Created (Desc)</option>
+          <option value="asc">Oldest</option>
+          <option value="desc">Newest</option>
         </Select>
+
         <Select
-          width="100px"
+          width="130px"
           value={pageSize}
           onChange={(e) => setPageSize(Number(e.target.value))}
+          placeholder="Page Size"
+          borderRadius="2xl"
+          shadow="sm"
+          bg="white"
+          _hover={{ shadow: "md" }}
+          _focus={{ borderColor: "teal.500", shadow: "lg" }}
         >
           <option value={5}>5</option>
           <option value={10}>10</option>
           <option value={20}>20</option>
         </Select>
       </Flex>
+
       {tasks.length === 0 ? (
         <Text fontSize="lg" color="gray.500" textAlign="center" mt={10}>
           No tasks available 🚀
@@ -159,7 +191,7 @@ const TaskList: React.FC = () => {
                         View Details
                       </Button>
 
-                      <Button
+                      {/*<Button
                         colorScheme="red"
                         size="sm"
                         variant="outline"
@@ -168,7 +200,7 @@ const TaskList: React.FC = () => {
                       >
                         Delete
                       </Button>
-                      <Button
+                      {/* <Button
                         as={RouterLink}
                         to={`/tasks/edit/${task.id}`}
                         colorScheme="yellow"
@@ -176,7 +208,33 @@ const TaskList: React.FC = () => {
                         variant="outline"
                       >
                         Edit
-                      </Button>
+                      </Button>*/}
+                      {/* New Status Update Menu */}
+                      <Menu>
+                        <MenuButton
+                          as={Button}
+                          rightIcon={<ChevronDownIcon />}
+                          colorScheme={colorScheme}
+                          size="sm"
+                        >
+                          Update Status
+                        </MenuButton>
+                        <MenuList>
+                          {["0", "1", "2", "3"].map((status) => (
+                            <MenuItem
+                              key={status}
+                              onClick={() =>
+                                handleStatusUpdate(
+                                  task.id,
+                                  parseInt(status) as Status
+                                )
+                              }
+                            >
+                              {getStatusLabel(parseInt(status) as Status)}
+                            </MenuItem>
+                          ))}
+                        </MenuList>
+                      </Menu>
                     </HStack>
                   </VStack>
                 </Box>
