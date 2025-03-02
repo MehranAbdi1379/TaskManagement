@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
@@ -8,6 +9,7 @@ using TaskManagement.Service.Interfaces;
 namespace TaskManagement.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class TaskController : ControllerBase
     {
@@ -54,7 +56,7 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> DeleteTaskAsync(int id)
         {
             await taskService.DeleteTaskByIdAsync(id);
-            return Ok();
+            return Ok("Task is deleted.");
         }
     }
 }
