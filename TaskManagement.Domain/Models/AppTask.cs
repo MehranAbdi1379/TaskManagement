@@ -13,6 +13,7 @@ namespace TaskManagement.Domain.Models
         public string Title { get; private set; }
         public string Description { get; private set; }
         public Status Status { get; private set; }
+        public int UserId { get; private set; }
 
         public AppTask()
         {
@@ -41,6 +42,11 @@ namespace TaskManagement.Domain.Models
         {
             if ((int)taskStatus < 0 || (int)taskStatus > 3) throw new DomainException("Task Status Code should be between 0 and 3");
             Status = taskStatus;
+        }
+
+        public void SetUserId(int userId)
+        {
+            UserId = userId;
         }
     }
 }

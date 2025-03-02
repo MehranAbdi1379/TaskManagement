@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository.EntityConfigurations;
 
 namespace TaskManagement.Repository
 {
-    public class TaskManagementIdentityDBContext: IdentityDbContext<ApplicationUser>
+    public class TaskManagementIdentityDBContext : IdentityDbContext<ApplicationUser, ApplicationRole, int>
     {
         public TaskManagementIdentityDBContext(DbContextOptions<TaskManagementIdentityDBContext> options) : base(options)
         {

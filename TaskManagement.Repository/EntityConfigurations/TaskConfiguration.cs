@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManagement.Domain.Models;
@@ -21,6 +22,7 @@ namespace TaskManagement.Repository.EntityConfigurations
             builder.Property(t => t.Status).IsRequired();
             builder.Property(t => t.UpdatedAt).IsRequired();
             builder.Property(t => t.CreatedAt).IsRequired();
+            builder.Property(t => t.UserId).IsRequired();
         }
     }
 }
