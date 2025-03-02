@@ -6,13 +6,16 @@ using System.Text;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
+using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.Repository.Repositories
 {
     public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
     {
-        public TaskRepository(TaskManagementDBContext context) : base(context)
+        private readonly IUserContext userContext;
+        public TaskRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
         {
+            this.userContext = userContext;
         }
 
         public async Task<PagedResult<TaskResponseDto>> GetTasksAsync(TaskQueryParameters queryParams)
@@ -26,6 +29,8 @@ namespace TaskManagement.Repository.Repositories
             }
 
             query = query.Where(task => task.Deleted == false);
+
+            query = query.Where(task => task.UserId == userContext.UserId);
 
             // Sorting by CreatedAt
             query = queryParams.SortOrder.ToLower() == "desc"
@@ -55,5 +60,23 @@ namespace TaskManagement.Repository.Repositories
                 PageSize = queryParams.PageSize
             };
         }
+
+        public async Task<AppTask> GetTaskByIdAsync(int id)
+        {
+            var result = await _context.Tasks.Where(task => task.Id == id && task.Deleted == false).FirstAsync();
+
+            if (result.UserId != userContext.UserId) throw new Exception("Task does not belong to the user.");
+            return result;
+        }
+
+        public async Task DeleteTaskAsync(int id)
+        {
+            var task = await _dbSet.FirstAsync(x => x.Id == id && x.Deleted == false);
+            if (task.UserId != userContext.UserId) throw new Exception("Task does not belong to the user.");
+            task.Deleted = true;
+            _dbSet.Update(task);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

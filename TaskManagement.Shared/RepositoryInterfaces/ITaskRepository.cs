@@ -7,5 +7,8 @@ namespace TaskManagement.Repository.Repositories
     public interface ITaskRepository: IBaseRepository<AppTask>
     {
         Task<PagedResult<TaskResponseDto>> GetTasksAsync(TaskQueryParameters queryParams);
+        Task<AppTask> GetTaskByIdAsync(int id);
+        Task DeleteTaskAsync(int id);
+
     }
 }
