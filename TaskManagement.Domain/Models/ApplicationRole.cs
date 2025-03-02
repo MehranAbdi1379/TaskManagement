@@ -7,10 +7,7 @@ using System.Threading.Tasks;
 
 namespace TaskManagement.Domain.Models
 {
-    public class ApplicationUser: IdentityUser<int>
+    public class ApplicationRole: IdentityRole<int>
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PhoneNumber { get; set; }
     }
 }
