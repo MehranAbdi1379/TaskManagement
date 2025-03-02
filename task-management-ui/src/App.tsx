@@ -11,9 +11,18 @@ import TaskDetail from "./components/Task/TaskDetail";
 import AddTask from "./components/Task/AddTask";
 import UpdateTask from "./components/Task/UpdateTask";
 import LandingPage from "./components/Global/LandingPage";
+import { useAuthStore } from "./store/useAuthStore";
+import RegisterForm from "./components/Auth/RegisterForm";
+import LoginForm from "./components/Auth/LoginForm";
+import { useEffect } from "react";
 
 const App: React.FC = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, userIsAuthenticated } = useAuthStore();
+
+  useEffect(() => {
+    userIsAuthenticated();
+  }, []);
+
   return (
     <Router>
       <Routes>
@@ -32,6 +41,8 @@ const App: React.FC = () => {
           )}
           <Route path="*" element={<Navigate to="/" />} />
         </Route>
+        <Route path="register" element={<RegisterForm />} />
+        <Route path="login" element={<LoginForm />} />
       </Routes>
     </Router>
   );
