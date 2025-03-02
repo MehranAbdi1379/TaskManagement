@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
 using TaskManagement.API.Middlewares;
+using TaskManagement.API.Services;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
 using TaskManagement.Repository.Repositories;
@@ -16,6 +17,7 @@ using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Mappings;
 using TaskManagement.Service.Services;
 using TaskManagement.Service.Validators;
+using TaskManagement.Shared.ServiceInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +41,15 @@ builder.Services.AddDbContext<TaskManagementIdentityDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
 
 // Configure Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
+{
+    options.Password.RequireDigit = false;   
+    options.Password.RequiredLength = 3;     
+    options.Password.RequireNonAlphanumeric = false; 
+    options.Password.RequireUppercase = false;  
+    options.Password.RequireLowercase = false;  
+    options.Password.RequiredUniqueChars = 0;  
+})
     .AddEntityFrameworkStores<TaskManagementIdentityDBContext>()
     .AddDefaultTokenProviders();
 
@@ -62,6 +72,19 @@ builder.Services.AddAuthentication(options =>
         ValidateAudience = false,
         ValidateLifetime = true
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Try to get the JWT token from cookies
+            var token = context.Request.Cookies["jwt"];
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            return Task.CompletedTask;
+        }
+    };
 });
 
 builder.Services.AddAuthorization();
@@ -72,6 +95,7 @@ builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IBaseRepository<AppTask>, BaseRepository<AppTask>>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IUserContext, UserContextWeb>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -122,7 +146,8 @@ app.UseCors(policy =>
           .WithOrigins("http://localhost:5173")
           .WithOrigins("http://localhost:5175")
           .AllowAnyMethod()
-          .AllowAnyHeader());
+          .AllowAnyHeader()
+          .AllowCredentials());
 
 
 app.UseHttpsRedirection();
