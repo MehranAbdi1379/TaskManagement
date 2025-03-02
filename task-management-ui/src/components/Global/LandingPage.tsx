@@ -23,7 +23,7 @@ const LandingPage: React.FC = () => {
           </Button>
           <Button
             as={RouterLink}
-            to="/signup"
+            to="/register"
             colorScheme="teal"
             size="lg"
             width="100%"

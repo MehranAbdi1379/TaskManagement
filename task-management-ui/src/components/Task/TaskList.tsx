@@ -22,10 +22,12 @@ import { InfoIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
 import { getStatusLabel, statusColors, statusIcons } from "./Task";
 import { Status, getTasks as getTasksApi } from "../../api/taskApi";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const TaskList: React.FC = () => {
   const { tasks, getTasks, updateTaskStatus } = useTaskStore();
   const loading = useTaskStore((state) => state.loading);
+  const { setIsAuthenticated } = useAuthStore();
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -34,19 +36,23 @@ const TaskList: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchTasks = async () => {
-    await getTasks({
-      pageNumber,
-      pageSize,
-      status: statusFilter || undefined,
-      sortOrder,
-    });
-    const response = await getTasksApi({
-      pageNumber,
-      pageSize,
-      status: statusFilter || undefined,
-      sortOrder,
-    });
-    setTotalPages(response.totalPages);
+    try {
+      await getTasks({
+        pageNumber,
+        pageSize,
+        status: statusFilter || undefined,
+        sortOrder,
+      });
+      const response = await getTasksApi({
+        pageNumber,
+        pageSize,
+        status: statusFilter || undefined,
+        sortOrder,
+      });
+      setTotalPages(response.totalPages);
+    } catch {
+      setIsAuthenticated(false);
+    }
   };
 
   const handleStatusUpdate = async (taskId: number, newStatus: Status) => {

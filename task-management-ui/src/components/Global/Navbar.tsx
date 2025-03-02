@@ -8,9 +8,11 @@ import {
   Box,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import { FiHome, FiInfo, FiLogIn } from "react-icons/fi";
+import { FiHome, FiInfo, FiLogIn, FiLogOut } from "react-icons/fi";
+import { useAuthStore } from "../../store/useAuthStore";
 
 const Navbar: React.FC = () => {
+  const { isAuthenticated, logout } = useAuthStore();
   return (
     <Flex
       as="nav"
@@ -59,25 +61,47 @@ const Navbar: React.FC = () => {
 
       <Spacer />
 
-      <Button
-        leftIcon={<FiLogIn />}
-        colorScheme="green"
-        variant="solid"
-        size="md"
-        _hover={{ bg: "green.300" }}
-        marginRight={5}
-      >
-        Register
-      </Button>
-      <Button
-        leftIcon={<FiLogIn />}
-        colorScheme="green"
-        variant="solid"
-        size="md"
-        _hover={{ bg: "green.300" }}
-      >
-        Login
-      </Button>
+      {!isAuthenticated && (
+        <>
+          <Button
+            leftIcon={<FiLogIn />}
+            colorScheme="green"
+            variant="solid"
+            size="md"
+            _hover={{ bg: "green.300" }}
+            marginRight={5}
+          >
+            Register
+          </Button>
+          <Button
+            leftIcon={<FiLogIn />}
+            colorScheme="green"
+            variant="solid"
+            size="md"
+            _hover={{ bg: "green.300" }}
+          >
+            Login
+          </Button>
+        </>
+      )}
+      {isAuthenticated && (
+        <>
+          <Button
+            leftIcon={<FiLogOut />}
+            as={RouterLink}
+            to={`/`}
+            colorScheme="red"
+            variant="solid"
+            size="md"
+            _hover={{ bg: "red.300" }}
+            onClick={() => {
+              logout();
+            }}
+          >
+            Logout
+          </Button>
+        </>
+      )}
     </Flex>
   );
 };
