@@ -19,6 +19,8 @@ namespace TaskManagement.Repository
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
+            modelBuilder.ApplyConfiguration(new TaskCommentConfiguration());
+            modelBuilder.ApplyConfiguration(new AppTaskUserConfiguration());
         }
     }
 }
