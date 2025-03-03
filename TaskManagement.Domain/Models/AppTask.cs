@@ -13,7 +13,7 @@ namespace TaskManagement.Domain.Models
         public string Title { get; private set; }
         public string Description { get; private set; }
         public Status Status { get; private set; }
-        public int UserId { get; private set; }
+        public int OwnerId { get; private set; }
 
         public AppTask()
         {
@@ -44,9 +44,9 @@ namespace TaskManagement.Domain.Models
             Status = taskStatus;
         }
 
-        public void SetUserId(int userId)
+        public void SetOwnerId(int userId)
         {
-            UserId = userId;
+            OwnerId = userId;
         }
     }
 }
