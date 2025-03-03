@@ -56,7 +56,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("Id");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 #pragma warning restore 612, 618
         }

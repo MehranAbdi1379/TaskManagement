@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,18 +21,20 @@ namespace TaskManagement.Service.Services
         private readonly ITaskRepository baseRepository;
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
+        private readonly UserManager<ApplicationUser> userManager;
 
-        public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext)
+        public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager)
         {
             this.baseRepository = baseRepository;
             this.mapper = mapper;
             this.userContext = userContext;
+            this.userManager = userManager;
         }
 
         public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
         {
             var task = mapper.Map<AppTask>(dto);
-            task.SetUserId(userContext.UserId);
+            task.SetOwnerId(userContext.UserId);
             await baseRepository.AddAsync(task);
             return mapper.Map<TaskResponseDto>(task);
         }
@@ -71,5 +74,7 @@ namespace TaskManagement.Service.Services
             await baseRepository.UpdateAsync(task);
             return mapper.Map<TaskResponseDto>(task);
         }
+
+        
     }
 }
