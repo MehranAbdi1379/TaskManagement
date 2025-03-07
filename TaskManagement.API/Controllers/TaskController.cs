@@ -5,6 +5,9 @@ using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.Interfaces;
+using TaskManagement.Service.Services;
+using TaskManagement.Shared.DTOs.Task;
+using TaskManagement.Shared.DTOs.TaskComment;
 
 namespace TaskManagement.API.Controllers
 {
@@ -14,9 +17,11 @@ namespace TaskManagement.API.Controllers
     public class TaskController : ControllerBase
     {
         protected readonly ITaskService taskService;
-        public TaskController(ITaskService taskService)
+        protected readonly ITaskCommentService taskCommentService;
+        public TaskController(ITaskService taskService, ITaskCommentService taskCommentService)
         {
             this.taskService = taskService;
+            this.taskCommentService = taskCommentService;
         }
         [HttpGet]
         public async Task<IActionResult> GetAllTasksAsync([FromQuery] TaskQueryParameters parameters)
@@ -57,6 +62,34 @@ namespace TaskManagement.API.Controllers
         {
             await taskService.DeleteTaskByIdAsync(id);
             return Ok("Task is deleted.");
+        }
+
+        [HttpGet("{id}/comment")]
+        public async Task<IActionResult> GetTaskCommentsAsync([FromQuery] TaskCommentQueryParameters parameters, int id)
+        {
+            var taskComments = await taskCommentService.GetTaskCommentsByTaskIdAsync(parameters, id);
+            return Ok(taskComments);
+        }
+
+        [HttpPost("{id}/comment")]
+        public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
+        {
+            var taskComment = await taskCommentService.CreateTaskCommentAsync(dto, id);
+            return Ok(taskComment);
+        }
+
+        [HttpDelete("{id}/comment")]
+        public async Task<IActionResult> DeleteTaskCommentAsync(int id)
+        {
+            await taskCommentService.DeleteTaskCommentByIdAsync(id);
+            return Ok("Task comment is deleted.");
+        }
+
+        [HttpPost("{id}/asign-user")]
+        public async Task<IActionResult> AsignUserToTask(AsignTaskToUserDto dto)
+        {
+            await taskService.AsignTaskToUserAsync(dto);
+            return Ok($"Task {dto.TaskId} is asigned to the user {dto.UserId}");
         }
     }
 }

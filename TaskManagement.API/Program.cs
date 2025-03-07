@@ -36,10 +36,6 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<TaskManagementDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
 
-// Database configuration
-builder.Services.AddDbContext<TaskManagementIdentityDBContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
-
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
 {
@@ -50,7 +46,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.Password.RequireLowercase = false;  
     options.Password.RequiredUniqueChars = 0;  
 })
-    .AddEntityFrameworkStores<TaskManagementIdentityDBContext>()
+    .AddEntityFrameworkStores<TaskManagementDBContext>()
     .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
@@ -96,6 +92,9 @@ builder.Services.AddScoped<IBaseRepository<AppTask>, BaseRepository<AppTask>>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserContext, UserContextWeb>();
+builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
+builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
+builder.Services.AddScoped<IBaseRepository<AppTaskUser>, BaseRepository<AppTaskUser>>();
 
 builder.Services.AddEndpointsApiExplorer();
 

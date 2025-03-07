@@ -3,14 +3,46 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace TaskManagement.Repository.Migrations.TaskManagementIdentityDB
+namespace TaskManagement.Repository.Migrations
 {
     /// <inheritdoc />
-    public partial class initialCreate : Migration
+    public partial class addIdentityToNormalDB : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropIndex(
+                name: "IX_Tasks_Id",
+                table: "Tasks");
+
+            migrationBuilder.RenameColumn(
+                name: "UserId",
+                table: "Tasks",
+                newName: "OwnerId");
+
+            migrationBuilder.CreateTable(
+                name: "AppTaskUser",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    TaskId = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AppTaskUser", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AppTaskUser_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -52,6 +84,30 @@ namespace TaskManagement.Repository.Migrations.TaskManagementIdentityDB
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TaskComment",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TaskId = table.Column<int>(type: "int", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Text = table.Column<string>(type: "nvarchar(500)", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Deleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TaskComment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TaskComment_Tasks_TaskId",
+                        column: x => x.TaskId,
+                        principalTable: "Tasks",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -161,6 +217,11 @@ namespace TaskManagement.Repository.Migrations.TaskManagementIdentityDB
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_AppTaskUser_TaskId",
+                table: "AppTaskUser",
+                column: "TaskId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
                 table: "AspNetRoleClaims",
                 column: "RoleId");
@@ -203,11 +264,19 @@ namespace TaskManagement.Repository.Migrations.TaskManagementIdentityDB
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TaskComment_TaskId",
+                table: "TaskComment",
+                column: "TaskId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "AppTaskUser");
+
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -224,10 +293,23 @@ namespace TaskManagement.Repository.Migrations.TaskManagementIdentityDB
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "TaskComment");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
+
+            migrationBuilder.RenameColumn(
+                name: "OwnerId",
+                table: "Tasks",
+                newName: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Tasks_Id",
+                table: "Tasks",
+                column: "Id");
         }
     }
 }
