@@ -18,7 +18,8 @@ namespace TaskManagement.Repository.EntityConfigurations
             builder.Property(x => x.TaskId).IsRequired();
             builder.HasOne<AppTask>()
                .WithMany()
-               .HasForeignKey(x => x.TaskId);
+               .HasForeignKey(x => x.TaskId)
+               .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }
