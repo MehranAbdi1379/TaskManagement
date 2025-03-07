@@ -8,7 +8,28 @@ namespace TaskManagement.Domain.Models
 {
     public class AppTaskUser: BaseEntity
     {
-        public int UserId { get; set; }
-        public int TaskId { get; set; }
+        public int UserId { get; private set; }
+        public int TaskId { get; private set; }
+
+        public AppTaskUser()
+        {
+            
+        }
+
+        public AppTaskUser(int userId, int taskId)
+        {
+            SetUserId(userId);
+            SetTaskId(taskId);
+        }
+
+        public void SetUserId(int userId)
+        {
+            UserId = userId;
+        }
+
+        public void SetTaskId(int taskId)
+        {   
+            TaskId = taskId;
+        }
     }
 }
