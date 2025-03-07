@@ -12,6 +12,7 @@ using TaskManagement.Repository.Repositories;
 using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.Interfaces;
+using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.Service.Services
@@ -19,16 +20,18 @@ namespace TaskManagement.Service.Services
     public class TaskService : ITaskService
     {
         private readonly ITaskRepository baseRepository;
+        private readonly IBaseRepository<AppTaskUser> taskUserRepository;
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
         private readonly UserManager<ApplicationUser> userManager;
 
-        public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager)
+        public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager, IBaseRepository<AppTaskUser> taskUserRepository)
         {
             this.baseRepository = baseRepository;
             this.mapper = mapper;
             this.userContext = userContext;
             this.userManager = userManager;
+            this.taskUserRepository = taskUserRepository;
         }
 
         public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
@@ -75,6 +78,20 @@ namespace TaskManagement.Service.Services
             return mapper.Map<TaskResponseDto>(task);
         }
 
-        
+        public async Task AsignTaskToUserAsync(AsignTaskToUserDto dto)
+        {
+            var task = await baseRepository.GetTaskByIdAsync(dto.TaskId);
+            if (userContext.UserId != task.OwnerId) throw new Exception("Only the owner of a task can asign it to another user.");
+
+            var appTaskUser = new AppTaskUser(dto.UserId, dto.TaskId);
+            await taskUserRepository.AddAsync(appTaskUser);
+        }
+
+        //public async Task UnAsignTaskAsync(int taskId)
+        //{
+        //    var task = await baseRepository.GetTaskByIdAsync(taskId);
+
+        //    await taskUserRepository.AddAsync(appTaskUser);
+        //}
     }
 }

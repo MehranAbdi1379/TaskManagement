@@ -2,6 +2,7 @@
 
 using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
+using TaskManagement.Shared.DTOs.Task;
 
 namespace TaskManagement.Service.Interfaces
 {
@@ -13,5 +14,6 @@ namespace TaskManagement.Service.Interfaces
         Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto);
         Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto);
         Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters);
+        Task AsignTaskToUserAsync(AsignTaskToUserDto dto);
     }
 }
