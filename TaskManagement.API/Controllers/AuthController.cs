@@ -38,7 +38,7 @@ namespace TaskManagement.API.Controllers
                 HttpOnly = true, // Prevents access from JavaScript
                 Secure = true,   // Ensures it's only sent over HTTPS
                 SameSite = SameSiteMode.None, // Prevents CSRF
-                Expires = DateTime.UtcNow.AddHours(1)
+                Expires = DateTime.UtcNow.AddHours(5)
             };
 
             Response.Cookies.Append("jwt", token, cookieOptions);
@@ -60,7 +60,7 @@ namespace TaskManagement.API.Controllers
                 HttpOnly = true, // Prevents access from JavaScript
                 Secure = true,   // Ensures it's only sent over HTTPS
                 SameSite = SameSiteMode.None, // Prevents CSRF
-                Expires = DateTime.UtcNow.AddMinutes(5)
+                Expires = DateTime.UtcNow.AddHours(5)
             };
 
             Response.Cookies.Append("jwt", token, cookieOptions);

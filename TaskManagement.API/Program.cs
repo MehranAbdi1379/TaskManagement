@@ -95,6 +95,9 @@ builder.Services.AddScoped<IUserContext, UserContextWeb>();
 builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
 builder.Services.AddScoped<IBaseRepository<AppTaskUser>, BaseRepository<AppTaskUser>>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IBaseRepository<TaskAssignmentRequest>, BaseRepository<TaskAssignmentRequest>>();
 
 builder.Services.AddEndpointsApiExplorer();
 
