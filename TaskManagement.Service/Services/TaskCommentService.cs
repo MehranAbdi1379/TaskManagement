@@ -33,17 +33,16 @@ namespace TaskManagement.Service.Services
         public async Task<TaskCommentResponseDto> CreateTaskCommentAsync(CreateTaskCommentDto dto, int taskId)
         {
             var taskComment = new TaskComment(taskId, userContext.UserId, dto.Text);
-            taskComment.SetUserId(userContext.UserId);
-            await baseRepository.AddAsync(taskComment);
+            await baseRepository.AddTaskCommentAsync(taskComment);
             var result = mapper.Map<TaskCommentResponseDto>(taskComment);
             var user = userManager.Users.First(u => u.Id == userContext.UserId);
-            result.UserFullName = user.FirstName + user.LastName;
+            result.UserFullName = user.FirstName + " " + user.LastName;
             return result;
         }
 
         public async Task<PagedResult<TaskCommentResponseDto>> GetTaskCommentsByTaskIdAsync(TaskCommentQueryParameters parameters, int taskId)
         {
-            if(!parameters.CommentOwner) return await baseRepository.GetTaskCommentsAsync(parameters, taskId);
+            if(parameters.CommentOwner == false) return await baseRepository.GetTaskCommentsAsync(parameters, taskId);
             else return await baseRepository.GetTaskCommentsByTaskAndUserIdAsync(parameters, taskId);
         }
 

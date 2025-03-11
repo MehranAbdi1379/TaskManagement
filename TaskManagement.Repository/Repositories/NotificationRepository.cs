@@ -20,11 +20,51 @@ namespace TaskManagement.Repository.Repositories
             this.userContext = userContext;
         }
 
-        public async Task<PagedResult<NotificationResponseDto>> GetNotificationsByUserId(NotificationQueryParameters queryParams)
+        public async Task<PagedResult<NotificationResponseDto>> GetActiveNotificationsByUserId(NotificationQueryParameters queryParams)
         {
             var query = _context.Notifications.AsQueryable();
 
-            query = query.Where(notification => notification.Deleted == false && notification.UserId == userContext.UserId);
+            query = query.Where(notification => notification.Deleted == false );
+
+            query = query.Where(notification => notification.IsRead == false && notification.UserId == userContext.UserId);
+
+            // Sorting by CreatedAt
+            query = queryParams.SortOrder.ToLower() == "desc"
+                ? query.OrderByDescending(task => task.CreatedAt)
+                : query.OrderBy(task => task.CreatedAt);
+
+            // Paging
+            var totalCount = await query.CountAsync();
+            var tasks = await query
+                .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
+                .Take(queryParams.PageSize)
+                .Select(notification => new NotificationResponseDto
+                {
+                    Id = notification.Id,
+                    Title = notification.Title,
+                    Content = notification.Content,
+                    IsRead = notification.IsRead,
+                    Type = notification.Type.ToString(),
+                    UserId = notification.UserId
+                })
+                .ToListAsync();
+
+            return new PagedResult<NotificationResponseDto>
+            {
+                Items = tasks,
+                TotalCount = totalCount,
+                PageNumber = queryParams.PageNumber,
+                PageSize = queryParams.PageSize
+            };
+        }
+
+        public async Task<PagedResult<NotificationResponseDto>> GetNotificationHistoryByUserId(NotificationQueryParameters queryParams)
+        {
+            var query = _context.Notifications.AsQueryable();
+
+            query = query.Where(notification => notification.Deleted == false);
+
+            query = query.Where(notification => notification.IsRead == true && notification.UserId == userContext.UserId);
 
             // Sorting by CreatedAt
             query = queryParams.SortOrder.ToLower() == "desc"

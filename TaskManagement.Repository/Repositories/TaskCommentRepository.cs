@@ -27,11 +27,17 @@ namespace TaskManagement.Repository.Repositories
             query = query.Where(taskComment => taskComment.Deleted == false);
 
             var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskId).Select(tu => tu.UserId).ToList();
-            taskUsers.Append(_context.Tasks.Where(t => t.OwnerId == userContext.UserId).First().OwnerId);
+
+            var taskOwner = _context.Tasks.Where(t => t.Id == taskId).First();
+
+            taskUsers = taskUsers.Append(taskOwner.OwnerId).ToList();
+            
+            var users = _context.Users.Where(u => taskUsers.Any(tu => tu == u.Id)).ToList();
+
+            //users.Add(_context.Users.Where(u => _context.Tasks.Where(t => t.Id == taskId).First().OwnerId == u.Id).First());
 
             if (!taskUsers.Any(tu => tu == userContext.UserId)) throw new Exception("User does not have permission to access the task.");
 
-            var users = _context.Users.Where(u => taskUsers.Any(tu => tu == u.Id));
 
             query = query.Where(task => task.TaskId == taskId);
 
@@ -49,13 +55,16 @@ namespace TaskManagement.Repository.Repositories
                 {
                     Id = taskComment.Id,
                     TaskId = taskComment.TaskId,
-                    UserFullName = users
-                    .Where(u => u.Id == taskComment.UserId)
-                    .Select(u => u.FirstName + " " + u.LastName)
-                    .First(),
-                    CreatedAt = taskComment.CreatedAt
+                    CreatedAt = taskComment.CreatedAt,
+                    Text = taskComment.Text,
+                    UserId = taskComment.UserId
                 })
                 .ToListAsync();
+
+            foreach (var taskComment in taskComments)
+            {
+                taskComment.UserFullName = users.Where(x => x.Id == taskComment.UserId).Select(x => x.FirstName + " " + x.LastName).First();
+            }
 
             return new PagedResult<TaskCommentResponseDto>
             {
@@ -73,13 +82,16 @@ namespace TaskManagement.Repository.Repositories
             query = query.Where(taskComment => taskComment.Deleted == false);
 
             var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskId).Select(tu => tu.UserId).ToList();
-            taskUsers.Append(_context.Tasks.Where(t => t.OwnerId == userContext.UserId).First().OwnerId);
+
+            var taskOwner = _context.Tasks.Where(t => t.Id == taskId).First();
+
+            taskUsers = taskUsers.Append(taskOwner.OwnerId).ToList();
 
             if (!taskUsers.Any(tu => tu == userContext.UserId)) throw new Exception("User does not have permission to access the task.");
 
             var user = _context.Users.First(u => u.Id == userContext.UserId);
 
-            query = query.Where(task => task.TaskId == taskId);
+            query = query.Where(task => task.TaskId == taskId && task.UserId == userContext.UserId);
 
             // Sorting by CreatedAt
             query = queryParams.SortOrder.ToLower() == "desc"
@@ -96,7 +108,8 @@ namespace TaskManagement.Repository.Repositories
                     Id = taskComment.Id,
                     TaskId = taskComment.TaskId,
                     UserFullName = user.FirstName + " " + user.LastName,
-                    CreatedAt = taskComment.CreatedAt
+                    CreatedAt = taskComment.CreatedAt,
+                    Text = taskComment.Text
                 })
                 .ToListAsync();
 
@@ -116,6 +129,21 @@ namespace TaskManagement.Repository.Repositories
             taskComment.Deleted = true;
             _dbSet.Update(taskComment);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<TaskComment> AddTaskCommentAsync(TaskComment taskComment)
+        {
+            var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskComment.TaskId).Select(tu => tu.UserId).ToList();
+
+            var taskOwner = _context.Tasks.Where(t => t.Id == taskComment.TaskId).First();
+
+            taskUsers = taskUsers.Append(taskOwner.OwnerId).ToList();
+
+            if (!taskUsers.Any(tu => tu == userContext.UserId)) throw new Exception("User does not have permission to access the task.");
+
+            await _dbSet.AddAsync(taskComment);
+            await _context.SaveChangesAsync();
+            return taskComment;
         }
     }
 }

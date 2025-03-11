@@ -32,7 +32,10 @@ namespace TaskManagement.Repository.Repositories
 
             var taskUsers = _context.TaskUsers.Where(tu => tu.UserId == userContext.UserId).ToList();
 
-            query = query.Where(task => task.OwnerId == userContext.UserId || taskUsers.Any(tu => tu.UserId == userContext.UserId && tu.TaskId == task.Id));
+            query = query.Where(task =>
+            task.OwnerId == userContext.UserId ||
+            taskUsers.Select(tu => tu.TaskId)
+            .Contains(task.Id));
 
             // Sorting by CreatedAt
             query = queryParams.SortOrder.ToLower() == "desc"
@@ -69,7 +72,7 @@ namespace TaskManagement.Repository.Repositories
 
             var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == id).ToList();
 
-            if (!taskUsers.Any(tu => tu.UserId == userContext.UserId) && userContext.UserId != result.OwnerId ) throw new Exception("Task does not belong to the user.");
+            if (!taskUsers.Any(tu => tu.UserId == userContext.UserId) && userContext.UserId != result.OwnerId) throw new Exception("Task does not belong to the user.");
             return result;
         }
 
