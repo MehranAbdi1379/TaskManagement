@@ -85,11 +85,26 @@ namespace TaskManagement.API.Controllers
             return Ok("Task comment is deleted.");
         }
 
-        [HttpPost("{id}/asign-user")]
-        public async Task<IActionResult> AsignUserToTask(AsignTaskToUserDto dto)
+        //[HttpPost("{id}/asign-user")]
+        //public async Task<IActionResult> AsignUserToTask(int userId, int id)
+        //{
+        //    await taskService.AsignTaskToUserAsync(userId, id);
+        //    return Ok($"Task {id} is asigned to the user {userId}");
+        //}
+
+        [HttpPost("assign")]
+        public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
         {
-            await taskService.AsignTaskToUserAsync(dto);
-            return Ok($"Task {dto.TaskId} is asigned to the user {dto.UserId}");
+            await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
+
+            return Ok("Task invitation sent.");
+        }
+
+        [HttpPost("respond")]
+        public async Task<IActionResult> RespondToAssignment([FromBody] TaskAssignmentResponseDto request)
+        {
+            await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
+            return Ok("Response recorded.");
         }
     }
 }
