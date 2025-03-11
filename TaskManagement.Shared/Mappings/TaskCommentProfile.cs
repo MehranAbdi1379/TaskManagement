@@ -13,7 +13,7 @@ namespace TaskManagement.Shared.Mappings
     {
         public TaskCommentProfile()
         {
-            CreateMap<TaskCommentResponseDto, TaskComment>();
+            CreateMap<TaskComment, TaskCommentResponseDto>();
         }
     }
 }

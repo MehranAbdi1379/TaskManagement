@@ -6,6 +6,7 @@ namespace TaskManagement.Repository.Repositories
 {
     public interface INotificationRepository: IBaseRepository<BaseNotification>
     {
-        Task<PagedResult<NotificationResponseDto>> GetNotificationsByUserId(NotificationQueryParameters queryParams);
+        Task<PagedResult<NotificationResponseDto>> GetActiveNotificationsByUserId(NotificationQueryParameters queryParams);
+        Task<PagedResult<NotificationResponseDto>> GetNotificationHistoryByUserId(NotificationQueryParameters queryParams);
     }
 }

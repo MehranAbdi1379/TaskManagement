@@ -14,6 +14,7 @@ namespace TaskManagement.Service.Interfaces
         Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto);
         Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto);
         Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters);
-        Task AsignTaskToUserAsync(AsignTaskToUserDto dto);
+        Task RequestTaskAssignmentAsync(string assigneeEmail, int taskId);
+        Task RespondToTaskAssignmentAsync(int requestId, bool accept);
     }
 }
