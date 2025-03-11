@@ -16,6 +16,8 @@ namespace TaskManagement.Repository
         public DbSet<AppTask> Tasks { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<AppTaskUser> TaskUsers { get; set; }
+        public DbSet<BaseNotification> Notifications { get; set; }
+        public DbSet<TaskAssignmentRequest> TaskAssignmentRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -25,6 +27,8 @@ namespace TaskManagement.Repository
             modelBuilder.ApplyConfiguration(new TaskConfiguration());
             modelBuilder.ApplyConfiguration(new TaskCommentConfiguration());
             modelBuilder.ApplyConfiguration(new AppTaskUserConfiguration());
+            modelBuilder.ApplyConfiguration(new TaskAssignmentRequestConfiguration());
+            modelBuilder.ApplyConfiguration(new NotificationConfiguration());
         }
     }
 }
