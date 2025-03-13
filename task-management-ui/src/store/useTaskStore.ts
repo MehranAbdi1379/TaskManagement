@@ -8,6 +8,7 @@ import {
   TaskQueryParameters,
   Status,
   updateTaskStatus,
+  getTaskById,
 } from "../api/taskApi";
 
 interface TaskStore {
@@ -18,6 +19,7 @@ interface TaskStore {
   updateTask: (task: Omit<Task, "createdAt">) => Promise<void>;
   updateTaskStatus: (id: number, status: Status) => Promise<void>;
   removeTask: (taskId: number) => Promise<void>;
+  getTaskById: (id: number) => Promise<void>;
 }
 
 // Create Zustand store
@@ -31,6 +33,20 @@ const useTaskStore = create<TaskStore>((set) => ({
       set({ tasks: tasks.items });
     } catch (error) {
       console.error("Error fetching tasks:", error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  getTaskById: async (id: number) => {
+    set({ loading: true });
+    try {
+      const task = await getTaskById(id);
+      set((state) => ({
+        tasks: [...state.tasks.filter((t) => t.id !== id), task], // Replace the existing task
+      }));
+    } catch (error) {
+      console.error("Error fetching task:", error);
     } finally {
       set({ loading: false });
     }
