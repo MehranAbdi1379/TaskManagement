@@ -6,12 +6,30 @@ export interface Task {
   description: string;
   status: Status;
   createdAt: Date;
+  isOwner: boolean;
+}
+
+export interface TaskComment {
+  id: number;
+  userFullName: string;
+  taskId: number;
+  text: string;
+  createdAt: Date;
+  userId: number;
+  isOwner: boolean;
 }
 
 export interface TaskQueryParameters {
   pageNumber: number;
   pageSize: number;
   status?: Status;
+  sortOrder: "asc" | "desc";
+}
+
+export interface TaskCommentQueryParameters {
+  pageNumber: number;
+  pageSize: number;
+  commentOwner: boolean;
   sortOrder: "asc" | "desc";
 }
 
@@ -66,4 +84,58 @@ export const updateTaskStatus = async (
 
 export const deleteTask = async (id: number): Promise<void> => {
   await axiosInstance.delete("/task/".concat(String(id)));
+};
+
+export const AssignTaskToUserRequest = async (
+  assigneeEmail: string,
+  taskId: number
+): Promise<void> => {
+  const response = await axiosInstance.post("/task/assign", {
+    assigneeEmail,
+    taskId,
+  });
+  return response.data;
+};
+
+export const AssignTaskToUserRespond = async (
+  requestNotificationId: number,
+  accept: boolean
+): Promise<void> => {
+  const response = await axiosInstance.post("/task/respond", {
+    requestNotificationId,
+    accept,
+  });
+  return response.data;
+};
+
+export const getTaskComments = async (
+  id: number,
+  params: TaskCommentQueryParameters
+): Promise<PagedResult<TaskComment>> => {
+  const response = await axiosInstance.get<PagedResult<TaskComment>>(
+    "/task/".concat(String(id)).concat("/comment"),
+    {
+      params,
+    }
+  );
+  return response.data;
+};
+
+export const createTaskComment = async (
+  text: string,
+  id: number
+): Promise<TaskComment> => {
+  const response = await axiosInstance.post<TaskComment>(
+    "/task/".concat(String(id).concat("/comment")),
+    {
+      text,
+    }
+  );
+  return response.data;
+};
+
+export const deleteTaskComment = async (id: number): Promise<void> => {
+  await axiosInstance.delete(
+    "/task/".concat("0").concat("/comment/").concat(String(id))
+  );
 };

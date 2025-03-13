@@ -10,6 +10,7 @@ import {
 import { Link as RouterLink } from "react-router-dom";
 import { FiHome, FiInfo, FiLogIn, FiLogOut } from "react-icons/fi";
 import { useAuthStore } from "../../store/useAuthStore";
+import { BellIcon } from "@chakra-ui/icons";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuthStore();
@@ -92,6 +93,7 @@ const Navbar: React.FC = () => {
             to={`/`}
             colorScheme="red"
             variant="solid"
+            marginRight={4}
             size="md"
             _hover={{ bg: "red.300" }}
             onClick={() => {
@@ -99,6 +101,17 @@ const Navbar: React.FC = () => {
             }}
           >
             Logout
+          </Button>
+          <Button
+            leftIcon={<BellIcon />}
+            as={RouterLink}
+            to={`/notifications`}
+            colorScheme="green"
+            variant="solid"
+            size="md"
+            _hover={{ bg: "green.300" }}
+          >
+            Notifications
           </Button>
         </>
       )}
