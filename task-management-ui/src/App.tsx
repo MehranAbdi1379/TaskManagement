@@ -15,12 +15,15 @@ import { useAuthStore } from "./store/useAuthStore";
 import RegisterForm from "./components/Auth/RegisterForm";
 import LoginForm from "./components/Auth/LoginForm";
 import { useEffect } from "react";
+import NotificationList from "./components/Notification/NotificationList";
+import useNotificationStore from "./store/useNotificationStore";
 
 const App: React.FC = () => {
   const { isAuthenticated, userIsAuthenticated } = useAuthStore();
 
   useEffect(() => {
     userIsAuthenticated();
+    useNotificationStore.getState().connect();
   }, []);
 
   return (
@@ -37,6 +40,7 @@ const App: React.FC = () => {
               <Route path="about" element={<About />}></Route>
               <Route path="tasks/add" element={<AddTask />} />
               <Route path="tasks/edit/:id" element={<UpdateTask />} />
+              <Route path="notifications" element={<NotificationList />} />
             </>
           )}
           <Route path="*" element={<Navigate to="/" />} />
