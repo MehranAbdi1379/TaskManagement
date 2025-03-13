@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
@@ -15,16 +15,26 @@ import {
   AlertDialogHeader,
   AlertDialogContent,
   AlertDialogOverlay,
+  FormControl,
+  FormLabel,
+  Input,
+  useToast,
 } from "@chakra-ui/react";
 import { InfoIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
 import { getStatusLabel, statusColors, statusIcons } from "./Task";
 import { format } from "date-fns";
+import { AssignTaskToUserRequest } from "../../api/taskApi";
+import TaskComments from "./TaskComments";
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [assignUserToTaskOpen, setAssignUserToTaskOpen] = useState(false);
+  const [userEmailToAssign, setUserEmailToAssign] = useState("");
   const navigate = useNavigate();
+  const { getTaskById } = useTaskStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const toast = useToast();
   const cancelRef = useRef<HTMLButtonElement>(
     null
   ) as React.RefObject<HTMLButtonElement>;
@@ -32,6 +42,12 @@ const TaskDetail: React.FC = () => {
   const task = useTaskStore((state) =>
     state.tasks.find((t) => t.id === Number(id))
   );
+
+  useEffect(() => {
+    if (!task) {
+      getTaskById(Number(id));
+    }
+  }, [id, task, getTaskById]);
 
   if (!task) {
     return (
@@ -58,6 +74,24 @@ const TaskDetail: React.FC = () => {
     new Date(task.createdAt),
     "MMMM dd, yyyy h:mm a"
   );
+
+  const handleAssignUser = async () => {
+    try {
+      await AssignTaskToUserRequest(userEmailToAssign, task.id);
+      toast({
+        title: "Request Has Been Sent!!!",
+        status: "success",
+        isClosable: true,
+      });
+      setAssignUserToTaskOpen(false);
+    } catch {
+      toast({
+        title: "Please check the Email!!!",
+        status: "warning",
+        isClosable: true,
+      });
+    }
+  };
 
   const handleDelete = () => {
     useTaskStore.getState().removeTask(task.id); // Remove task
@@ -128,15 +162,28 @@ const TaskDetail: React.FC = () => {
             Back to Tasks
           </Button>
 
-          <Button
-            colorScheme="red"
-            variant="outline"
-            leftIcon={<DeleteIcon />}
-            onClick={onOpen} // Open the confirmation dialog
-            _hover={{ bg: "red.50" }}
-          >
-            Delete
-          </Button>
+          {task.isOwner && (
+            <>
+              <Button
+                colorScheme="red"
+                variant="outline"
+                leftIcon={<DeleteIcon />}
+                onClick={onOpen} // Open the confirmation dialog
+                _hover={{ bg: "red.50" }}
+              >
+                Delete
+              </Button>
+
+              <Button
+                colorScheme={assignUserToTaskOpen ? "blackAlpha" : "green"}
+                variant="outline"
+                _hover={{ bg: "green.50" }}
+                onClick={() => setAssignUserToTaskOpen(!assignUserToTaskOpen)}
+              >
+                Assign User To Task
+              </Button>
+            </>
+          )}
 
           <Button
             as={RouterLink}
@@ -149,6 +196,45 @@ const TaskDetail: React.FC = () => {
           </Button>
         </HStack>
       </VStack>
+
+      {assignUserToTaskOpen && (
+        <Box
+          maxW="4xl"
+          width="100%"
+          mx="auto"
+          p={8}
+          borderWidth="1px"
+          borderRadius="2xl"
+          shadow="xl"
+          bg={`${colorScheme}.50`}
+          mt={8}
+          _hover={{ shadow: "2xl" }}
+          transition="all 0.3s ease"
+        >
+          <VStack spacing={4} align="stretch">
+            <FormControl isRequired>
+              <FormLabel>User Email</FormLabel>
+              <Input
+                placeholder="User Email"
+                value={userEmailToAssign}
+                onChange={(e) => setUserEmailToAssign(e.target.value)}
+              />
+            </FormControl>
+
+            <Button
+              onClick={() => handleAssignUser()}
+              mt={6}
+              width="full"
+              colorScheme="teal"
+              type="submit"
+            >
+              Assign User
+            </Button>
+          </VStack>
+        </Box>
+      )}
+
+      {!assignUserToTaskOpen && <TaskComments taskId={task.id} />}
 
       {/* AlertDialog for confirmation */}
       <AlertDialog

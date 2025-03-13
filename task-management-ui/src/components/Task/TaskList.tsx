@@ -115,7 +115,11 @@ const TaskList: React.FC = () => {
         <Select
           width="180px"
           value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
+          onChange={(e) =>
+            setSortOrder(
+              e.target.value == "" ? "asc" : (e.target.value as "asc" | "desc")
+            )
+          }
           placeholder="Sort By"
           borderRadius="2xl"
           shadow="sm"
@@ -247,25 +251,29 @@ const TaskList: React.FC = () => {
               );
             })}
           </SimpleGrid>
-          <Flex justify="center" mt={8} gap={4} align="center">
-            <Button
-              onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
-              disabled={pageNumber === 1}
-            >
-              Prev
-            </Button>
-            <Text>
-              Page {pageNumber} of {totalPages}
-            </Text>
-            <Button
-              onClick={() =>
-                setPageNumber((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={pageNumber === totalPages}
-            >
-              Next
-            </Button>
-          </Flex>
+          {totalPages != 0 && (
+            <>
+              <Flex justify="center" mt={8} gap={4} align="center">
+                <Button
+                  onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+                  disabled={pageNumber === 1}
+                >
+                  Prev
+                </Button>
+                <Text>
+                  Page {pageNumber} of {totalPages}
+                </Text>
+                <Button
+                  onClick={() =>
+                    setPageNumber((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={pageNumber === totalPages}
+                >
+                  Next
+                </Button>
+              </Flex>
+            </>
+          )}
         </>
       )}
     </Box>
