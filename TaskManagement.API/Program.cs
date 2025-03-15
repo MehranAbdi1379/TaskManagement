@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -13,6 +14,8 @@ using TaskManagement.API.Services;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
 using TaskManagement.Repository.Repositories;
+using TaskManagement.Service.DTOs;
+using TaskManagement.Service.Hubs;
 using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Mappings;
 using TaskManagement.Service.Services;
@@ -20,8 +23,6 @@ using TaskManagement.Service.Validators;
 using TaskManagement.Shared.ServiceInterfaces;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 builder.Services.AddControllers()
         .AddFluentValidation(config =>
@@ -35,6 +36,8 @@ builder.Services.AddControllers()
 // Register DbContext with dependency injection
 builder.Services.AddDbContext<TaskManagementDBContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
+
+builder.Services.AddSignalR();
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
@@ -85,7 +88,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddAutoMapper(typeof(TaskProfile).Assembly);
 
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IBaseRepository<AppTask>, BaseRepository<AppTask>>();
@@ -99,6 +103,7 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaskAssignmentRequestRepository, TaskAssignmentRequestRepository>();
 builder.Services.AddScoped<IBaseRepository<BaseNotification>, BaseRepository<BaseNotification>>();
+
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -133,6 +138,8 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -156,6 +163,8 @@ app.UseCors(policy =>
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.MapHub<NotificationHub>("/notificationHub");
 
 app.MapControllers();
 

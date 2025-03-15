@@ -57,7 +57,8 @@ namespace TaskManagement.Repository.Repositories
                     TaskId = taskComment.TaskId,
                     CreatedAt = taskComment.CreatedAt,
                     Text = taskComment.Text,
-                    UserId = taskComment.UserId
+                    UserId = taskComment.UserId,
+                    IsOwner = taskComment.UserId == userContext.UserId
                 })
                 .ToListAsync();
 
@@ -109,7 +110,8 @@ namespace TaskManagement.Repository.Repositories
                     TaskId = taskComment.TaskId,
                     UserFullName = user.FirstName + " " + user.LastName,
                     CreatedAt = taskComment.CreatedAt,
-                    Text = taskComment.Text
+                    Text = taskComment.Text,
+                    IsOwner = taskComment.UserId == userContext.UserId
                 })
                 .ToListAsync();
 

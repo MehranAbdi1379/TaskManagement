@@ -31,7 +31,7 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> UpdateNotificationIsRead(int notificationId)
+        public async Task<IActionResult> UpdateNotificationIsRead([FromBody] int notificationId)
         {
             await notificationService.UpdateNotificationIsReadAsync(notificationId);
             return Ok("Notification is updated.");

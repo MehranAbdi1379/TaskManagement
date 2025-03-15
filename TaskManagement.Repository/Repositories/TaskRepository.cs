@@ -52,6 +52,7 @@ namespace TaskManagement.Repository.Repositories
                     Id = task.Id,
                     Title = task.Title,
                     Description = task.Description,
+                    IsOwner = task.OwnerId == userContext.UserId,
                     Status = task.Status,
                     CreatedAt = task.CreatedAt
                 })

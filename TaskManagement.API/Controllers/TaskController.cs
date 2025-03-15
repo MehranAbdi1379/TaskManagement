@@ -78,10 +78,10 @@ namespace TaskManagement.API.Controllers
             return Ok(taskComment);
         }
 
-        [HttpDelete("{id}/comment")]
-        public async Task<IActionResult> DeleteTaskCommentAsync(int id)
+        [HttpDelete("{id}/comment/{taskCommentId}")]
+        public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
         {
-            await taskCommentService.DeleteTaskCommentByIdAsync(id);
+            await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
             return Ok("Task comment is deleted.");
         }
 
