@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManagement.Service.Hubs;  
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
@@ -14,6 +16,7 @@ using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.Interfaces;
 using TaskManagement.Shared.DTOs.Task;
+using TaskManagement.Shared.DTOs.TaskComment;
 using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.Service.Services
@@ -28,6 +31,8 @@ namespace TaskManagement.Service.Services
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
         private readonly UserManager<ApplicationUser> userManager;
+        
+
 
         public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager, IBaseRepository<AppTaskUser> taskUserRepository, ITaskAssignmentRequestRepository taskAssignmentRequestRepository, INotificationService notificationService, IBaseRepository<BaseNotification> notificationRepository)
         {
@@ -40,6 +45,7 @@ namespace TaskManagement.Service.Services
             this.notificationService = notificationService;
             this.notificationRepository = notificationRepository;
         }
+       
 
         public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
         {
@@ -90,6 +96,7 @@ namespace TaskManagement.Service.Services
             var appTaskUser = new AppTaskUser(userContext.UserId, taskId);
             await taskUserRepository.AddAsync(appTaskUser);
         }
+
 
         public async Task RequestTaskAssignmentAsync(string assigneeEmail, int taskId)
         {

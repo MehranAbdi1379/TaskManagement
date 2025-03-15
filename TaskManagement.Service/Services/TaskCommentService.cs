@@ -12,6 +12,8 @@ using TaskManagement.Service.DTOs;
 using TaskManagement.Shared.ServiceInterfaces;
 using TaskManagement.Repository;
 using TaskManagement.Shared.DTOs.TaskComment;
+using Microsoft.AspNetCore.SignalR;
+using TaskManagement.Service.Hubs;
 
 namespace TaskManagement.Service.Services
 {
@@ -21,13 +23,15 @@ namespace TaskManagement.Service.Services
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly IHubContext<NotificationHub> hubContext;
 
-        public TaskCommentService(ITaskCommentRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager)
+        public TaskCommentService(ITaskCommentRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager, IHubContext<NotificationHub> hubContext)
         {
             this.baseRepository = baseRepository;
             this.mapper = mapper;
             this.userContext = userContext;
             this.userManager = userManager;
+            this.hubContext = hubContext;
         }
 
         public async Task<TaskCommentResponseDto> CreateTaskCommentAsync(CreateTaskCommentDto dto, int taskId)
@@ -37,6 +41,8 @@ namespace TaskManagement.Service.Services
             var result = mapper.Map<TaskCommentResponseDto>(taskComment);
             var user = userManager.Users.First(u => u.Id == userContext.UserId);
             result.UserFullName = user.FirstName + " " + user.LastName;
+            result.IsOwner = true;
+            await NotifyTaskUsersAsync(result.TaskId, result);
             return result;
         }
 
@@ -44,6 +50,11 @@ namespace TaskManagement.Service.Services
         {
             if(parameters.CommentOwner == false) return await baseRepository.GetTaskCommentsAsync(parameters, taskId);
             else return await baseRepository.GetTaskCommentsByTaskAndUserIdAsync(parameters, taskId);
+        }
+
+        public async Task NotifyTaskUsersAsync(int taskId, TaskCommentResponseDto comment)
+        {
+            await hubContext.Clients.Group($"task-{taskId}").SendAsync("ReceiveTaskComment", comment);
         }
 
         //public async Task<TaskResponseDto> GetTaskCommentByIdAsync(int id)
