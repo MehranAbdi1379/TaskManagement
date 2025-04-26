@@ -16,12 +16,20 @@ interface TaskCommentStore {
   ) => Promise<void>;
   addTaskComment: (text: string, taskId: number) => Promise<void>;
   removeTaskComment: (taskCommentId: number) => Promise<void>;
+  addTaskCommentFromStateManagement: (taskComment: TaskComment) => void;
+  removeTaskCommentFromStateManagement: (id: number) => void;
 }
 
 // Create Zustand store
 const useTaskCommentStore = create<TaskCommentStore>((set) => ({
   comments: [],
   loading: true,
+  removeTaskCommentFromStateManagement: (id) =>
+    set((state) => ({ comments: state.comments.filter((t) => t.id !== id) })),
+  addTaskCommentFromStateManagement: (taskComment) =>
+    set((state) => ({
+      comments: [...state.comments, taskComment],
+    })),
 
   getTaskComments: async (
     id: number,
@@ -39,8 +47,7 @@ const useTaskCommentStore = create<TaskCommentStore>((set) => ({
 
   addTaskComment: async (text: string, taskId: number) => {
     try {
-      const newTaskComment = await createTaskComment(text, taskId);
-      set((state) => ({ comments: [...state.comments, newTaskComment] }));
+      await createTaskComment(text, taskId);
     } catch (error) {
       console.error("Error adding taskComment:", error);
     }

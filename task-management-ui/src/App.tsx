@@ -16,14 +16,14 @@ import RegisterForm from "./components/Auth/RegisterForm";
 import LoginForm from "./components/Auth/LoginForm";
 import { useEffect } from "react";
 import NotificationList from "./components/Notification/NotificationList";
-import useNotificationStore from "./store/useNotificationStore";
+import useSignalR from "./store/useSignalR";
 
 const App: React.FC = () => {
   const { isAuthenticated, userIsAuthenticated } = useAuthStore();
+  useSignalR();
 
   useEffect(() => {
     userIsAuthenticated();
-    useNotificationStore.getState().connect();
   }, []);
 
   return (

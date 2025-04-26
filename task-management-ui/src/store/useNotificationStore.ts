@@ -6,17 +6,11 @@ import {
   Notification,
   updateNotificationIsRead,
 } from "../api/notificationApi";
-import {
-  HubConnection,
-  HubConnectionBuilder,
-  LogLevel,
-} from "@microsoft/signalr";
 
 interface NotificationStore {
   notifications: Notification[];
+  addNotification: (notification: Notification) => void;
   loading: boolean;
-  connection: HubConnection | null;
-  connect: () => void;
   getActiveNotifications: (
     parameters: NotificationQueryParameters
   ) => Promise<void>;
@@ -29,32 +23,11 @@ interface NotificationStore {
 // Create Zustand store
 const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
+  addNotification: (notification) =>
+    set((state) => ({
+      notifications: [...state.notifications, notification],
+    })),
   loading: true,
-
-  connection: null,
-
-  connect: () => {
-    const connection = new HubConnectionBuilder()
-      .withUrl("https://localhost:7124/notificationHub") // Update the URL if necessary
-      .configureLogging(LogLevel.Information)
-      .withAutomaticReconnect()
-      .build();
-
-    connection
-      .start()
-      .then(() => console.log("Connected to NotificationHub"))
-      .catch((err) =>
-        console.error("Error connecting to NotificationHub:", err)
-      );
-
-    connection.on("ReceiveNotification", (notification: Notification) => {
-      set((state) => ({
-        notifications: [notification, ...state.notifications],
-      }));
-    });
-
-    set({ connection });
-  },
 
   getActiveNotifications: async (parameters: NotificationQueryParameters) => {
     try {

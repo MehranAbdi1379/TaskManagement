@@ -1,52 +1,55 @@
 import { useEffect } from "react";
 import * as signalR from "@microsoft/signalr";
+import { LogLevel } from "@microsoft/signalr";
 import useNotificationStore from "./useNotificationStore";
+import { Notification } from "../api/notificationApi";
+import { TaskComment } from "@/api/taskApi";
 import useTaskCommentStore from "./useCommentStore";
 
-const useSignalR = (taskId?: number) => {
+const useSignalR = () => {
   const addNotification = useNotificationStore(
-    (state) => state.
+    (state) => state.addNotification
   );
-  const addTaskComment = useTaskCommentStore((state) => state.addTaskComment);
+  const addTaskComment = useTaskCommentStore(
+    (state) => state.addTaskCommentFromStateManagement
+  );
+  const deleteTaskComment = useTaskCommentStore(
+    (state) => state.removeTaskCommentFromStateManagement
+  );
 
   useEffect(() => {
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:7124/notificationHub")
+      .withUrl("https://localhost:7124/hub") // Your backend Hub URL
+      .configureLogging(LogLevel.Information)
       .withAutomaticReconnect()
       .build();
 
     connection
       .start()
-      .catch((err) => console.error("SignalR Connection Error:", err));
+      .then(() => console.log("✅ Connected to NotificationHub"))
+      .catch((err) =>
+        console.error("❌ Error connecting to NotificationHub:", err)
+      );
 
-    // Listen for notifications
-    connection.on("ReceiveNotification", (notification) => {
-      addNotification(notification);
+    connection.on("ReceiveNotification", (notification: Notification) => {
+      console.log("📩 Received Notification:", notification);
+      addNotification(notification); // ✅ Update the Zustand store
     });
 
-    // Listen for task comments
-    connection.on("ReceiveTaskComment", (comment) => {
-      addTaskComment(comment,);
+    connection.on("ReceiveTaskComment", (taskComment: TaskComment) => {
+      console.log("📩 Received Task Comment:", taskComment);
+      addTaskComment(taskComment); // ✅ Update the Zustand store
     });
 
-    // If taskId is provided, join the task group
-    if (taskId) {
-      connection.start().then(() => {
-        connection.invoke("JoinTaskGroup", taskId);
-      });
-
-      return () => {
-        connection.invoke("LeaveTaskGroup", taskId);
-        connection.stop();
-      };
-    }
+    connection.on("DeleteTaskComment", (id: number) => {
+      console.log("Deleted Task Comment Id:", id);
+      deleteTaskComment(id); // ✅ Update the Zustand store
+    });
 
     return () => {
-      connection.stop();
+      connection.stop(); // 👌 Clean up on unmount
     };
-  }, [taskId]);
-
-  return null;
+  }, [addNotification, addTaskComment, deleteTaskComment]);
 };
 
 export default useSignalR;
