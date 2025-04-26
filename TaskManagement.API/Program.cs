@@ -9,13 +9,13 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Text;
+using TaskManagement.API.Hubs;
 using TaskManagement.API.Middlewares;
 using TaskManagement.API.Services;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
 using TaskManagement.Repository.Repositories;
 using TaskManagement.Service.DTOs;
-using TaskManagement.Service.Hubs;
 using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Mappings;
 using TaskManagement.Service.Services;
@@ -164,7 +164,7 @@ app.UseHttpsRedirection();
 
 app.UseAuthorization();
 
-app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<NotificationHub>("/hub");
 
 app.MapControllers();
 
