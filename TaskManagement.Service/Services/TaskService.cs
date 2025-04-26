@@ -6,8 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
-using TaskManagement.Service.Hubs;  
+using System.Threading.Tasks; 
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
@@ -91,14 +90,14 @@ namespace TaskManagement.Service.Services
             return mapper.Map<TaskResponseDto>(task);
         }
 
-        private async Task AsignTaskToUserAsync(int taskId)
+        private async Task AssignTaskToUserAsync(int taskId)
         {
             var appTaskUser = new AppTaskUser(userContext.UserId, taskId);
             await taskUserRepository.AddAsync(appTaskUser);
         }
 
 
-        public async Task RequestTaskAssignmentAsync(string assigneeEmail, int taskId)
+        public async Task<BaseNotification> RequestTaskAssignmentAsync(string assigneeEmail, int taskId)
         {
             var task = await baseRepository.GetTaskByIdAsync(taskId);
 
@@ -118,14 +117,17 @@ namespace TaskManagement.Service.Services
 
             // Create a notification for the assignee
             var notification = await notificationService.CreateNotification(assignee.Id,"Task Assignment Request",
-                $"You have been invited to join Task (Title: {task.Title}, Description: {task.Description}) by ({owner.FirstName + " " + owner.LastName}). Accept or Reject.",NotificationType.TaskAssignmentRequest
+                $"You have been invited to join Task (Title: {task.Title}, Description: {task.Description}) by ({owner.FirstName + " " + owner.LastName}). Accept or Reject."
+                ,NotificationType.TaskAssignmentRequest
             );
 
             request.SetRequestNotificationId(notification.Id);
             await taskAssignmentRequestRepository.UpdateAsync(request);
+
+            return notification;
         }
 
-        public async Task RespondToTaskAssignmentAsync(int notificationId, bool accept)
+        public async Task<BaseNotification> RespondToTaskAssignmentAsync(int notificationId, bool accept)
         {
             var request = await taskAssignmentRequestRepository.GetTaskAssignmentRequestByNotificationIdAsync(notificationId);
             if (request == null) throw new Exception("Task Assignment Request does not exist.");
@@ -144,11 +146,10 @@ namespace TaskManagement.Service.Services
             if (accept)
             {
 
-                await AsignTaskToUserAsync(request.TaskId);
-
-
+                await AssignTaskToUserAsync(request.TaskId);
+                
                 // Notify the task owner
-                await notificationService.CreateNotification(
+                return await notificationService.CreateNotification(
                     request.TaskOwnerId, "Task Assignment Accepted",
                     $"User ({user.FirstName + " " + user.LastName}) has accepted your task invitation for task" +
                     $"(Title: {task.Title}, Description: {task.Description})."
@@ -157,7 +158,7 @@ namespace TaskManagement.Service.Services
             }
             else
             {
-                await notificationService.CreateNotification(
+                return await notificationService.CreateNotification(
                     request.TaskOwnerId,"Task Assignment Rejected",
                     $"User {user.FirstName + " " + user.LastName} has rejected your task invitation." +
                     $"(Title: {task.Title}, Description: {task.Description})."

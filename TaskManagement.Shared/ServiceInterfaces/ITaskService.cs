@@ -1,5 +1,6 @@
 ﻿
 
+using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Shared.DTOs.Task;
@@ -14,7 +15,7 @@ namespace TaskManagement.Service.Interfaces
         Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto);
         Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto);
         Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters);
-        Task RequestTaskAssignmentAsync(string assigneeEmail, int taskId);
-        Task RespondToTaskAssignmentAsync(int requestId, bool accept);
+        Task<BaseNotification> RequestTaskAssignmentAsync(string assigneeEmail, int taskId);
+        Task<BaseNotification> RespondToTaskAssignmentAsync(int requestId, bool accept);
     }
 }

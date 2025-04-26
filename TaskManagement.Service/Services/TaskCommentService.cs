@@ -13,7 +13,6 @@ using TaskManagement.Shared.ServiceInterfaces;
 using TaskManagement.Repository;
 using TaskManagement.Shared.DTOs.TaskComment;
 using Microsoft.AspNetCore.SignalR;
-using TaskManagement.Service.Hubs;
 
 namespace TaskManagement.Service.Services
 {
@@ -23,15 +22,13 @@ namespace TaskManagement.Service.Services
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
         private readonly UserManager<ApplicationUser> userManager;
-        private readonly IHubContext<NotificationHub> hubContext;
 
-        public TaskCommentService(ITaskCommentRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager, IHubContext<NotificationHub> hubContext)
+        public TaskCommentService(ITaskCommentRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager)
         {
             this.baseRepository = baseRepository;
             this.mapper = mapper;
             this.userContext = userContext;
             this.userManager = userManager;
-            this.hubContext = hubContext;
         }
 
         public async Task<TaskCommentResponseDto> CreateTaskCommentAsync(CreateTaskCommentDto dto, int taskId)
@@ -42,20 +39,15 @@ namespace TaskManagement.Service.Services
             var user = userManager.Users.First(u => u.Id == userContext.UserId);
             result.UserFullName = user.FirstName + " " + user.LastName;
             result.IsOwner = true;
-            await NotifyTaskUsersAsync(result.TaskId, result);
             return result;
         }
 
         public async Task<PagedResult<TaskCommentResponseDto>> GetTaskCommentsByTaskIdAsync(TaskCommentQueryParameters parameters, int taskId)
         {
             if(parameters.CommentOwner == false) return await baseRepository.GetTaskCommentsAsync(parameters, taskId);
-            else return await baseRepository.GetTaskCommentsByTaskAndUserIdAsync(parameters, taskId);
+            return await baseRepository.GetTaskCommentsByTaskAndUserIdAsync(parameters, taskId);
         }
 
-        public async Task NotifyTaskUsersAsync(int taskId, TaskCommentResponseDto comment)
-        {
-            await hubContext.Clients.Group($"task-{taskId}").SendAsync("ReceiveTaskComment", comment);
-        }
 
         //public async Task<TaskResponseDto> GetTaskCommentByIdAsync(int id)
         //{
@@ -63,9 +55,11 @@ namespace TaskManagement.Service.Services
         //    return mapper.Map<TaskResponseDto>(task);
         //}
 
-        public async Task DeleteTaskCommentByIdAsync(int id)
+        public async Task<TaskComment> DeleteTaskCommentByIdAsync(int id)
         {
+            var taskComment = await baseRepository.GetByIdAsync(id);
             await baseRepository.DeleteTaskCommentAsync(id);
+            return taskComment;
         }
     }
 }

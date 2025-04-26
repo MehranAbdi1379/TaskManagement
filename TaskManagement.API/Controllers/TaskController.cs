@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using TaskManagement.API.Hubs;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Services;
+using TaskManagement.Shared.DTOs.Notification;
 using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.DTOs.TaskComment;
 
@@ -18,10 +21,12 @@ namespace TaskManagement.API.Controllers
     {
         protected readonly ITaskService taskService;
         protected readonly ITaskCommentService taskCommentService;
-        public TaskController(ITaskService taskService, ITaskCommentService taskCommentService)
+        protected readonly IHubContext<NotificationHub> notificationHub;
+        public TaskController(ITaskService taskService, ITaskCommentService taskCommentService, IHubContext<NotificationHub> notificationHub)
         {
             this.taskService = taskService;
             this.taskCommentService = taskCommentService;
+            this.notificationHub = notificationHub;
         }
         [HttpGet]
         public async Task<IActionResult> GetAllTasksAsync([FromQuery] TaskQueryParameters parameters)
@@ -30,7 +35,7 @@ namespace TaskManagement.API.Controllers
             return Ok(tasks);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetTaskByIdAsync(int id)
         {
             var task = await taskService.GetTaskByIdAsync(id);
@@ -75,13 +80,16 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
         {
             var taskComment = await taskCommentService.CreateTaskCommentAsync(dto, id);
+            //await notificationHub.Clients.Group($"task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
+            await notificationHub.Clients.All.SendAsync("ReceiveTaskComment", taskComment);
             return Ok(taskComment);
         }
 
         [HttpDelete("{id}/comment/{taskCommentId}")]
         public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
         {
-            await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
+            var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
+            await notificationHub.Clients.All.SendAsync("DeleteTaskComment", taskComment.Id);
             return Ok("Task comment is deleted.");
         }
 
@@ -95,15 +103,40 @@ namespace TaskManagement.API.Controllers
         [HttpPost("assign")]
         public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
         {
-            await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
+            var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
+            
+            var dto = new NotificationResponseDto()
+            {
+                Content = notification.Content,
+                Id = notification.Id,
+                IsRead = notification.IsRead,
+                Title = notification.Title,
+                Type = notification.Type.ToString(),
+                UserId = notification.UserId
+            };
 
+            await notificationHub.Clients.All.SendAsync("ReceiveNotification", dto);
+            
             return Ok("Task invitation sent.");
         }
 
         [HttpPost("respond")]
         public async Task<IActionResult> RespondToAssignment([FromBody] TaskAssignmentResponseDto request)
         {
-            await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
+            var notification = await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
+            
+            var dto = new NotificationResponseDto()
+            {
+                Content = notification.Content,
+                Id = notification.Id,
+                IsRead = notification.IsRead,
+                Title = notification.Title,
+                Type = notification.Type.ToString(),
+                UserId = notification.UserId
+            };
+
+            await notificationHub.Clients.All.SendAsync("ReceiveNotification", dto);
+            
             return Ok("Response recorded.");
         }
     }

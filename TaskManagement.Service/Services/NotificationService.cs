@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TaskManagement.Service.Hubs;
 using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository.Repositories;
@@ -18,36 +17,17 @@ namespace TaskManagement.Service.Services
     {
         private readonly INotificationRepository baseRepository;
         private readonly IUserContext userContext;
-        private readonly IHubContext<NotificationHub> hubContext;
 
 
-        public NotificationService(INotificationRepository baseRepository, IUserContext userContext, IHubContext<NotificationHub> hubContext)
+        public NotificationService(INotificationRepository baseRepository, IUserContext userContext)
         {
             this.baseRepository = baseRepository;
             this.userContext = userContext;
-            this.hubContext = hubContext;
-        }
-
-        public async Task NotifyAllUsers(NotificationResponseDto notification)
-        {
-            await hubContext.Clients.All.SendAsync("ReceiveNotification", notification);
         }
 
         public async Task<BaseNotification> CreateNotification(int userId, string title, string content, NotificationType notificationType)
         {
             var notification = new BaseNotification(userId, title, content, notificationType);
-
-            var dto = new NotificationResponseDto()
-            {
-                Content = notification.Content,
-                Id = notification.Id,
-                IsRead = notification.IsRead,
-                Title = notification.Title,
-                Type = notification.Type.ToString(),
-                UserId = notification.UserId
-            };
-
-            await NotifyAllUsers(dto);
 
             return await baseRepository.AddAsync(notification);
         }
