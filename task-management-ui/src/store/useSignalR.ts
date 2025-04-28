@@ -1,10 +1,9 @@
 import { useEffect } from "react";
-import * as signalR from "@microsoft/signalr";
-import { LogLevel } from "@microsoft/signalr";
 import useNotificationStore from "./useNotificationStore";
 import { Notification } from "../api/notificationApi";
 import { TaskComment } from "@/api/taskApi";
 import useTaskCommentStore from "./useCommentStore";
+import connection from "../api/signalRConnection";
 
 const useSignalR = () => {
   const addNotification = useNotificationStore(
@@ -17,19 +16,17 @@ const useSignalR = () => {
     (state) => state.removeTaskCommentFromStateManagement
   );
 
-  useEffect(() => {
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl("https://localhost:7124/hub") // Your backend Hub URL
-      .configureLogging(LogLevel.Information)
-      .withAutomaticReconnect()
-      .build();
+  //const [isConnected, setIsConnected] = useState(false);
 
-    connection
-      .start()
-      .then(() => console.log("✅ Connected to NotificationHub"))
-      .catch((err) =>
-        console.error("❌ Error connecting to NotificationHub:", err)
-      );
+  useEffect(() => {
+    if (connection.state === "Disconnected") {
+      connection
+        .start()
+        .then(() => console.log("✅ Connected to NotificationHub"))
+        .catch((err) =>
+          console.error("❌ Error connecting to NotificationHub:", err)
+        );
+    }
 
     connection.on("ReceiveNotification", (notification: Notification) => {
       console.log("📩 Received Notification:", notification);
@@ -47,7 +44,14 @@ const useSignalR = () => {
     });
 
     return () => {
-      connection.stop(); // 👌 Clean up on unmount
+      connection.off("ReceiveNotification");
+      connection.off("ReceiveTaskComment");
+      connection.off("DeleteTaskComment");
+      if (connection.state === "Connected") {
+        connection
+          .stop()
+          .then(() => console.log("❌ Disconnected from NotificationHub"));
+      }
     };
   }, [addNotification, addTaskComment, deleteTaskComment]);
 };
