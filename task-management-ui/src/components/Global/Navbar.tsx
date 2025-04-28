@@ -6,14 +6,28 @@ import {
   Button,
   Link,
   Box,
+  Badge,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
 import { FiHome, FiInfo, FiLogIn, FiLogOut } from "react-icons/fi";
 import { useAuthStore } from "../../store/useAuthStore";
 import { BellIcon } from "@chakra-ui/icons";
+import useNotificationStore from "../../store/useNotificationStore";
+import { useEffect } from "react";
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuthStore();
+  const { getActiveNotifications, notifications } = useNotificationStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      getActiveNotifications({
+        pageNumber: 1,
+        pageSize: 99,
+        sortOrder: "desc",
+      }).then(() => notifications.length);
+    }
+  }, [isAuthenticated, getActiveNotifications]);
   return (
     <Flex
       as="nav"
@@ -103,13 +117,31 @@ const Navbar: React.FC = () => {
             Logout
           </Button>
           <Button
-            leftIcon={<BellIcon />}
             as={RouterLink}
             to={`/notifications`}
             colorScheme="green"
             variant="solid"
             size="md"
             _hover={{ bg: "green.300" }}
+            leftIcon={
+              <Flex position="relative">
+                <BellIcon />
+                {notifications.length > 0 && (
+                  <Badge
+                    position="absolute"
+                    top="-1"
+                    right="-1"
+                    fontSize="0.7em"
+                    colorScheme="red"
+                    borderRadius="full"
+                    px="2.5"
+                    py="1.5"
+                  >
+                    {notifications.length}
+                  </Badge>
+                )}
+              </Flex>
+            }
           >
             Notifications
           </Button>

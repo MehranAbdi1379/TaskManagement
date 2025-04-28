@@ -80,8 +80,10 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
         {
             var taskComment = await taskCommentService.CreateTaskCommentAsync(dto, id);
-            //await notificationHub.Clients.Group($"task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
-            await notificationHub.Clients.All.SendAsync("ReceiveTaskComment", taskComment);
+            var tempIsOwner = taskComment.IsOwner;
+            taskComment.IsOwner = false;
+            await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
+            taskComment.IsOwner = tempIsOwner;
             return Ok(taskComment);
         }
 
@@ -89,16 +91,9 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
         {
             var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
-            await notificationHub.Clients.All.SendAsync("DeleteTaskComment", taskComment.Id);
+            await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("DeleteTaskComment", taskComment.Id);
             return Ok("Task comment is deleted.");
         }
-
-        //[HttpPost("{id}/asign-user")]
-        //public async Task<IActionResult> AsignUserToTask(int userId, int id)
-        //{
-        //    await taskService.AsignTaskToUserAsync(userId, id);
-        //    return Ok($"Task {id} is asigned to the user {userId}");
-        //}
 
         [HttpPost("assign")]
         public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
