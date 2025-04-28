@@ -26,6 +26,7 @@ import { getStatusLabel, statusColors, statusIcons } from "./Task";
 import { format } from "date-fns";
 import { AssignTaskToUserRequest } from "../../api/taskApi";
 import TaskComments from "./TaskComments";
+import { joinGroup, leaveGroup } from "../../store/signalRGroupManager";
 
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,6 +48,15 @@ const TaskDetail: React.FC = () => {
     if (!task) {
       getTaskById(Number(id));
     }
+    if (task) {
+      joinGroup(`Task-${task.id}`);
+    }
+
+    return () => {
+      if (task) {
+        leaveGroup(`Task-${task.id}`);
+      }
+    };
   }, [id, task, getTaskById]);
 
   if (!task) {

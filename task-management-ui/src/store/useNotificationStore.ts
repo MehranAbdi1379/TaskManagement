@@ -42,8 +42,8 @@ const useNotificationStore = create<NotificationStore>((set) => ({
 
   getNotificationHistory: async (parameters: NotificationQueryParameters) => {
     try {
-      const tasks = await getNotificationHistory(parameters);
-      set({ notifications: tasks.items });
+      const notifications = await getNotificationHistory(parameters);
+      set({ notifications: notifications.items });
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {

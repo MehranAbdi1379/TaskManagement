@@ -1,3 +1,4 @@
+import { getUserId } from "../api/authApi";
 import {
   createTaskComment,
   deleteTaskComment,
@@ -16,7 +17,9 @@ interface TaskCommentStore {
   ) => Promise<void>;
   addTaskComment: (text: string, taskId: number) => Promise<void>;
   removeTaskComment: (taskCommentId: number) => Promise<void>;
-  addTaskCommentFromStateManagement: (taskComment: TaskComment) => void;
+  addTaskCommentFromStateManagement: (
+    taskComment: TaskComment
+  ) => Promise<void>;
   removeTaskCommentFromStateManagement: (id: number) => void;
 }
 
@@ -26,10 +29,14 @@ const useTaskCommentStore = create<TaskCommentStore>((set) => ({
   loading: true,
   removeTaskCommentFromStateManagement: (id) =>
     set((state) => ({ comments: state.comments.filter((t) => t.id !== id) })),
-  addTaskCommentFromStateManagement: (taskComment) =>
-    set((state) => ({
-      comments: [...state.comments, taskComment],
-    })),
+  addTaskCommentFromStateManagement: async (taskComment) => {
+    const userId = await getUserId();
+    if (userId != taskComment.userId) {
+      set((state) => ({
+        comments: [...state.comments, taskComment],
+      }));
+    }
+  },
 
   getTaskComments: async (
     id: number,
@@ -47,7 +54,10 @@ const useTaskCommentStore = create<TaskCommentStore>((set) => ({
 
   addTaskComment: async (text: string, taskId: number) => {
     try {
-      await createTaskComment(text, taskId);
+      const taskComment = await createTaskComment(text, taskId);
+      set((state) => ({
+        comments: [...state.comments, taskComment],
+      }));
     } catch (error) {
       console.error("Error adding taskComment:", error);
     }
