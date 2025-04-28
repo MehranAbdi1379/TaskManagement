@@ -20,9 +20,13 @@ export const register = async (
   return response.data;
 };
 
+export const getUserId = async (): Promise<number> => {
+  const response = (await axiosInstance.get("/Auth/get-user-id")).data.userId;
+  return response;
+};
+
 export const login = async (user: User): Promise<void> => {
   const response = await axiosInstance.post("/Auth/login", user);
-  console.log(response);
   return response.data;
 };
 
