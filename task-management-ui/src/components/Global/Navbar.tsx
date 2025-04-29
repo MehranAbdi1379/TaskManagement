@@ -18,6 +18,9 @@ import { useEffect } from "react";
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuthStore();
   const { getActiveNotifications, notifications } = useNotificationStore();
+  const notificationActiveOrHistory = useNotificationStore(
+    (state) => state.notificationActiveOrHitory
+  );
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -25,7 +28,7 @@ const Navbar: React.FC = () => {
         pageNumber: 1,
         pageSize: 99,
         sortOrder: "desc",
-      }).then(() => notifications.length);
+      });
     }
   }, [isAuthenticated, getActiveNotifications]);
   return (
@@ -126,20 +129,21 @@ const Navbar: React.FC = () => {
             leftIcon={
               <Flex position="relative">
                 <BellIcon />
-                {notifications.length > 0 && (
-                  <Badge
-                    position="absolute"
-                    top="-1"
-                    right="-1"
-                    fontSize="0.7em"
-                    colorScheme="red"
-                    borderRadius="full"
-                    px="2.5"
-                    py="1.5"
-                  >
-                    {notifications.length}
-                  </Badge>
-                )}
+                {notifications.length > 0 &&
+                  notificationActiveOrHistory == "active" && (
+                    <Badge
+                      position="absolute"
+                      top="2.5"
+                      right="2.5"
+                      fontSize="0.7em"
+                      colorScheme="red"
+                      borderRadius="full"
+                      px="0.5"
+                      py="0.3"
+                    >
+                      {notifications.length}
+                    </Badge>
+                  )}
               </Flex>
             }
           >

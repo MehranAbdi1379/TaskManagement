@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import {
   Box,
   Button,
   FormControl,
   FormLabel,
+  HStack,
   Input,
   Select,
   Textarea,
@@ -12,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import useTaskStore from "../../store/useTaskStore";
 import { Status } from "../../api/taskApi";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 
 const AddTask: React.FC = () => {
   const [title, setTitle] = useState("");
@@ -90,9 +93,23 @@ const AddTask: React.FC = () => {
             </Select>
           </FormControl>
 
-          <Button mt={6} width="full" colorScheme="blue" type="submit">
-            Add Task
-          </Button>
+          <HStack>
+            <Button
+              as={RouterLink}
+              to="/"
+              variant="outline"
+              leftIcon={<ArrowBackIcon />}
+              colorScheme="blue"
+              mt={6}
+              width="50%"
+            >
+              Back to Tasks
+            </Button>
+
+            <Button mt={6} width="full" colorScheme="blue" type="submit">
+              Add Task
+            </Button>
+          </HStack>
         </form>
       </VStack>
     </Box>
