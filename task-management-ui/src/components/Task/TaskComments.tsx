@@ -11,9 +11,11 @@ import {
   useToast,
   Spinner,
   Select,
+  Flex,
 } from "@chakra-ui/react";
 import { DeleteIcon } from "@chakra-ui/icons";
 import useTaskCommentStore from "../../store/useCommentStore";
+import { getTaskCommentsApi } from "../../api/taskApi";
 
 interface TaskCommentsProps {
   taskId: number;
@@ -31,15 +33,36 @@ const TaskComments: React.FC<TaskCommentsProps> = ({ taskId }) => {
   const [newComment, setNewComment] = useState("");
   const [commentOwner, setCommentOwner] = useState(false);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [pageSize, setPageSize] = useState(10);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    getTaskComments(taskId, {
-      pageNumber: 1,
-      pageSize: 10,
+  const fetchTaskComments = async () => {
+    await getTaskComments(taskId, {
+      pageNumber,
+      pageSize,
       commentOwner,
-      sortOrder: sortOrder,
+      sortOrder,
     });
-  }, [taskId, commentOwner, getTaskComments]);
+    const response = await getTaskCommentsApi(taskId, {
+      pageNumber,
+      pageSize,
+      commentOwner,
+      sortOrder,
+    });
+    setTotalPages(response.totalPages);
+  };
+  useEffect(() => {
+    fetchTaskComments();
+  }, [
+    taskId,
+    commentOwner,
+    getTaskComments,
+    setSortOrder,
+    sortOrder,
+    pageSize,
+    pageNumber,
+  ]);
 
   const handleAddComment = async () => {
     if (!newComment.trim()) {
@@ -92,6 +115,18 @@ const TaskComments: React.FC<TaskCommentsProps> = ({ taskId }) => {
           <option value="asc">Oldest</option>
           <option value="desc">Newest</option>
         </Select>
+        <Select
+          width="200px"
+          value={pageSize}
+          onChange={(e) => setPageSize(Number(e.target.value))}
+          placeholder="Page Size"
+          _hover={{ shadow: "md" }}
+          _focus={{ borderColor: "teal.500", shadow: "lg" }}
+        >
+          <option value={5}>5</option>
+          <option value={10}>10</option>
+          <option value={20}>20</option>
+        </Select>
       </HStack>
 
       {loading ? (
@@ -143,6 +178,29 @@ const TaskComments: React.FC<TaskCommentsProps> = ({ taskId }) => {
           Add
         </Button>
       </HStack>
+      {totalPages != 0 && totalPages > 0 && (
+        <>
+          <Flex justify="center" mt={8} gap={4} align="center">
+            <Button
+              onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
+              disabled={pageNumber === 1}
+            >
+              Prev
+            </Button>
+            <Text>
+              Page {pageNumber} of {totalPages}
+            </Text>
+            <Button
+              onClick={() =>
+                setPageNumber((prev) => Math.min(prev + 1, totalPages))
+              }
+              disabled={pageNumber === totalPages}
+            >
+              Next
+            </Button>
+          </Flex>
+        </>
+      )}
     </Box>
   );
 };
