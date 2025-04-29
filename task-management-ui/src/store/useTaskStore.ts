@@ -9,23 +9,50 @@ import {
   Status,
   updateTaskStatus,
   getTaskById,
+  getAssignedUsers,
+  unassignTaskUser,
 } from "../api/taskApi";
 
 interface TaskStore {
   tasks: Task[];
   loading: boolean;
+  assignedUsers: {
+    userId: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  }[];
+  getAssignedUsers: (taskId: number) => Promise<void>;
   getTasks: (parameters: TaskQueryParameters) => Promise<void>;
   addTask: (task: Omit<Task, "id">) => Promise<void>;
   updateTask: (task: Omit<Task, "createdAt">) => Promise<void>;
   updateTaskStatus: (id: number, status: Status) => Promise<void>;
   removeTask: (taskId: number) => Promise<void>;
   getTaskById: (id: number) => Promise<void>;
+  removeTaskUser: (taskId: number, userId: number) => Promise<void>;
 }
 
 // Create Zustand store
 const useTaskStore = create<TaskStore>((set) => ({
   tasks: [],
   loading: true,
+  assignedUsers: [],
+  removeTaskUser: async (taskId, userId) => {
+    try {
+      await unassignTaskUser(taskId, userId);
+      set((state) => ({
+        assignedUsers: state.assignedUsers.filter(
+          (user) => user.userId !== userId
+        ),
+      }));
+    } catch (error) {
+      console.error("Error removing task user:", error);
+    }
+  },
+  getAssignedUsers: async (taskId: number) => {
+    const response = await getAssignedUsers(taskId);
+    set({ assignedUsers: response });
+  },
 
   getTasks: async (parameters: TaskQueryParameters) => {
     try {

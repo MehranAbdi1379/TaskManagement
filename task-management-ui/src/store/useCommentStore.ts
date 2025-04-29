@@ -2,7 +2,7 @@ import { getUserId } from "../api/authApi";
 import {
   createTaskComment,
   deleteTaskComment,
-  getTaskComments,
+  getTaskCommentsApi,
   TaskComment,
   TaskCommentQueryParameters,
 } from "../api/taskApi";
@@ -43,7 +43,7 @@ const useTaskCommentStore = create<TaskCommentStore>((set) => ({
     parameters: TaskCommentQueryParameters
   ) => {
     try {
-      const taskComments = await getTaskComments(id, parameters);
+      const taskComments = await getTaskCommentsApi(id, parameters);
       set({ comments: taskComments.items });
     } catch (error) {
       console.error("Error fetching taskComments:", error);

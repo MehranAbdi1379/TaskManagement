@@ -201,25 +201,6 @@ const TaskList: React.FC = () => {
                         View Details
                       </Button>
 
-                      {/*<Button
-                        colorScheme="red"
-                        size="sm"
-                        variant="outline"
-                        leftIcon={<DeleteIcon />}
-                        onClick={() => removeTask(task.id)}
-                      >
-                        Delete
-                      </Button>
-                      {/* <Button
-                        as={RouterLink}
-                        to={`/tasks/edit/${task.id}`}
-                        colorScheme="yellow"
-                        size="sm"
-                        variant="outline"
-                      >
-                        Edit
-                      </Button>*/}
-                      {/* New Status Update Menu */}
                       <Menu>
                         <MenuButton
                           as={Button}
@@ -251,7 +232,7 @@ const TaskList: React.FC = () => {
               );
             })}
           </SimpleGrid>
-          {totalPages != 0 && (
+          {totalPages != 0 && totalPages > 0 && (
             <>
               <Flex justify="center" mt={8} gap={4} align="center">
                 <Button

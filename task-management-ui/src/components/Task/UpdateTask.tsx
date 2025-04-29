@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
   Button,
@@ -11,9 +11,11 @@ import {
   VStack,
   useToast,
   Text,
+  HStack,
 } from "@chakra-ui/react";
 import useTaskStore from "../../store/useTaskStore";
 import { Status } from "../../api/taskApi";
+import { ArrowBackIcon } from "@chakra-ui/icons";
 
 const UpdateTask: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,7 +47,7 @@ const UpdateTask: React.FC = () => {
       return;
     }
 
-    updateTask({ id: task!.id, title, description, status });
+    updateTask({ id: task!.id, title, description, status, isOwner: true });
     toast({
       title: "Task updated successfully!",
       status: "success",
@@ -103,9 +105,23 @@ const UpdateTask: React.FC = () => {
             </Select>
           </FormControl>
 
-          <Button mt={6} width="full" colorScheme="teal" type="submit">
-            Update Task
-          </Button>
+          <HStack>
+            <Button
+              as={RouterLink}
+              to={`/tasks/${task.id}`}
+              variant="outline"
+              leftIcon={<ArrowBackIcon />}
+              colorScheme="blue"
+              mt={6}
+              width="50%"
+            >
+              Back to Task
+            </Button>
+
+            <Button mt={6} width="full" colorScheme="teal" type="submit">
+              Update Task
+            </Button>
+          </HStack>
         </form>
       </VStack>
     </Box>

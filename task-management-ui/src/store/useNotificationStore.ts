@@ -6,10 +6,11 @@ import {
   Notification,
   updateNotificationIsRead,
 } from "../api/notificationApi";
+import { getUserId } from "../api/authApi";
 
 interface NotificationStore {
   notifications: Notification[];
-  addNotification: (notification: Notification) => void;
+  addNotification: (notification: Notification) => Promise<void>;
   loading: boolean;
   getActiveNotifications: (
     parameters: NotificationQueryParameters
@@ -18,21 +19,28 @@ interface NotificationStore {
     parameters: NotificationQueryParameters
   ) => Promise<void>;
   updateNotificationIsRead: (id: number) => Promise<void>;
+  notificationActiveOrHitory: "active" | "history";
 }
 
 // Create Zustand store
 const useNotificationStore = create<NotificationStore>((set) => ({
   notifications: [],
-  addNotification: (notification) =>
-    set((state) => ({
-      notifications: [...state.notifications, notification],
-    })),
+  notificationActiveOrHitory: "history",
+  addNotification: async (notification) => {
+    const userId = await getUserId();
+    if (userId == notification.userId) {
+      set((state) => ({
+        notifications: [...state.notifications, notification],
+      }));
+    }
+  },
   loading: true,
 
   getActiveNotifications: async (parameters: NotificationQueryParameters) => {
     try {
       const notifications = await getActiveNotifications(parameters);
       set({ notifications: notifications.items });
+      set({ notificationActiveOrHitory: "active" });
     } catch (error) {
       console.error("Error fetching notifications:", error);
     } finally {
@@ -44,6 +52,7 @@ const useNotificationStore = create<NotificationStore>((set) => ({
     try {
       const notifications = await getNotificationHistory(parameters);
       set({ notifications: notifications.items });
+      set({ notificationActiveOrHitory: "history" });
     } catch (error) {
       console.error("Error fetching tasks:", error);
     } finally {
