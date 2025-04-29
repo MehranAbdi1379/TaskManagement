@@ -19,6 +19,9 @@ import {
   FormLabel,
   Input,
   useToast,
+  Heading,
+  Avatar,
+  Flex,
 } from "@chakra-ui/react";
 import { InfoIcon, ArrowBackIcon, DeleteIcon } from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
@@ -31,9 +34,10 @@ import { joinGroup, leaveGroup } from "../../store/signalRGroupManager";
 const TaskDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [assignUserToTaskOpen, setAssignUserToTaskOpen] = useState(false);
+  const [viewAssignedUsersOpen, setViewAssignedUsersOpen] = useState(false);
   const [userEmailToAssign, setUserEmailToAssign] = useState("");
   const navigate = useNavigate();
-  const { getTaskById } = useTaskStore();
+  const { getTaskById, assignedUsers, getAssignedUsers } = useTaskStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const toast = useToast();
   const cancelRef = useRef<HTMLButtonElement>(
@@ -50,6 +54,10 @@ const TaskDetail: React.FC = () => {
     }
     if (task) {
       joinGroup(`Task-${task.id}`);
+    }
+
+    if (task?.isOwner) {
+      getAssignedUsers(task.id);
     }
 
     return () => {
@@ -107,6 +115,15 @@ const TaskDetail: React.FC = () => {
     useTaskStore.getState().removeTask(task.id); // Remove task
     onClose(); // Close the dialog
     navigate("/"); // Navigate back to tasks
+  };
+
+  const handleUnassignUser = (userId: number) => {
+    useTaskStore.getState().removeTaskUser(task.id, userId); // Unassign user
+    toast({
+      title: "User unassigned successfully!",
+      status: "info",
+      isClosable: true,
+    });
   };
 
   return (
@@ -188,9 +205,23 @@ const TaskDetail: React.FC = () => {
                 colorScheme={assignUserToTaskOpen ? "blackAlpha" : "green"}
                 variant="outline"
                 _hover={{ bg: "green.50" }}
-                onClick={() => setAssignUserToTaskOpen(!assignUserToTaskOpen)}
+                onClick={() => {
+                  setAssignUserToTaskOpen(!assignUserToTaskOpen);
+                  setViewAssignedUsersOpen(false);
+                }}
               >
                 Assign User To Task
+              </Button>
+              <Button
+                colorScheme={viewAssignedUsersOpen ? "blackAlpha" : "cyan"}
+                variant="outline"
+                _hover={{ bg: "cyan.50" }}
+                onClick={() => {
+                  setViewAssignedUsersOpen(!viewAssignedUsersOpen);
+                  setAssignUserToTaskOpen(false);
+                }}
+              >
+                View Assigned Users
               </Button>
             </>
           )}
@@ -244,7 +275,69 @@ const TaskDetail: React.FC = () => {
         </Box>
       )}
 
-      {!assignUserToTaskOpen && <TaskComments taskId={task.id} />}
+      {viewAssignedUsersOpen && (
+        <Box
+          maxW="4xl"
+          w="100%"
+          mx="auto"
+          p={8}
+          borderWidth="1px"
+          borderRadius="2xl"
+          boxShadow="xl"
+          bg={`${colorScheme}.50`}
+          mt={8}
+          _hover={{ boxShadow: "2xl" }}
+          transition="all 0.3s ease"
+        >
+          <VStack spacing={6} align="stretch">
+            <Heading size="md" color={`${colorScheme}.700`} mb={4}>
+              Assigned Users
+            </Heading>
+            {assignedUsers.length > 0 ? (
+              assignedUsers.map((u) => (
+                <Flex
+                  key={u.email}
+                  p={4}
+                  borderWidth="1px"
+                  borderRadius="lg"
+                  bg="white"
+                  align="center"
+                  justify="space-between"
+                  _hover={{ bg: `${colorScheme}.100` }}
+                  transition="background 0.3s"
+                >
+                  <HStack spacing={4}>
+                    <Avatar name={`${u.firstName} ${u.lastName}`} size="sm" />
+                    <Box>
+                      <Text fontWeight="bold">
+                        {u.firstName} {u.lastName}
+                      </Text>
+                      <Text fontSize="sm" color="gray.500">
+                        {u.email}
+                      </Text>
+                    </Box>
+                  </HStack>
+
+                  <Button
+                    colorScheme="red"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleUnassignUser(u.userId)}
+                  >
+                    Unassign
+                  </Button>
+                </Flex>
+              ))
+            ) : (
+              <Text color="gray.500">No users assigned yet.</Text>
+            )}
+          </VStack>
+        </Box>
+      )}
+
+      {!assignUserToTaskOpen && !viewAssignedUsersOpen && (
+        <TaskComments taskId={task.id} />
+      )}
 
       {/* AlertDialog for confirmation */}
       <AlertDialog
