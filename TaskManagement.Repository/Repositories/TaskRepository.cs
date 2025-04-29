@@ -6,6 +6,7 @@ using System.Text;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs;
 using TaskManagement.Service.DTOs.Task;
+using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.Repository.Repositories
@@ -86,5 +87,29 @@ namespace TaskManagement.Repository.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<List<TaskAssignedUserResponseDto>> GetTaskAssignedUsersAsync(int taskId)
+        {
+            var task = await _context.Tasks.Where(task => task.Id == taskId && task.Deleted == false).FirstOrDefaultAsync();
+            if(task == null) throw new Exception("Task does not not exist.");
+            if(task.OwnerId != userContext.UserId) throw new Exception("Task does not belong to the user.");
+            var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskId ).ToList();
+            return taskUsers.Select(tu => new TaskAssignedUserResponseDto
+            {
+                FirstName = _context.Users.First(u => u.Id == tu.UserId).FirstName,
+                LastName = _context.Users.First(u => u.Id == tu.UserId).LastName,
+                Email = _context.Users.First(u => u.Id == tu.UserId).Email,
+                UserId = tu.UserId,
+            }).ToList();
+        }
+
+        public async Task UnassignTaskAsync(int taskId, int userId)
+        {
+            var task = await _context.Tasks.Where(task => task.Id == taskId && task.Deleted == false).FirstOrDefaultAsync();
+            if(task == null) throw new Exception("Task does not exist.");
+            var taskUser = await _context.TaskUsers.Where(tu => tu.TaskId == taskId && tu.UserId == userId).FirstOrDefaultAsync();
+            if(taskUser == null) throw new Exception("User is not assigned to task.");
+            _context.TaskUsers.Remove(taskUser);
+            await _context.SaveChangesAsync();
+        }
     }
 }

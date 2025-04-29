@@ -9,6 +9,7 @@ namespace TaskManagement.Repository.Repositories
         Task DeleteTaskCommentAsync(int id);
         Task<PagedResult<TaskCommentResponseDto>> GetTaskCommentsByTaskAndUserIdAsync(TaskCommentQueryParameters queryParams, int taskId);
         Task<PagedResult<TaskCommentResponseDto>> GetTaskCommentsAsync(TaskCommentQueryParameters queryParams, int taskId);
-        Task<TaskComment> AddTaskCommentAsync(TaskComment taskComment);
+        Task<(TaskComment, List<BaseNotification>)> AddTaskCommentAsync(TaskComment taskComment,
+            List<(int userId, int taskId)> taskUserGroups);
     }
 }
