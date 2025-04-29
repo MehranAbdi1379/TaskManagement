@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 using TaskManagement.Service.DTOs.Task;
 using TaskManagement.Service.DTOs;
@@ -15,9 +16,11 @@ namespace TaskManagement.Repository.Repositories
     public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRepository
     {
         private readonly IUserContext userContext;
-        public TaskCommentRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
+        private readonly INotificationRepository notificationRepository;
+        public TaskCommentRepository(TaskManagementDBContext context, IUserContext userContext, INotificationRepository notificationRepository) : base(context)
         {
             this.userContext = userContext;
+            this.notificationRepository = notificationRepository;
         }
 
         public async Task<PagedResult<TaskCommentResponseDto>> GetTaskCommentsAsync(TaskCommentQueryParameters queryParams, int taskId)
@@ -133,7 +136,7 @@ namespace TaskManagement.Repository.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<TaskComment> AddTaskCommentAsync(TaskComment taskComment)
+        public async Task<(TaskComment,List<BaseNotification>)> AddTaskCommentAsync(TaskComment taskComment, List<(int userId,int taskId)> taskUserGroups)
         {
             var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskComment.TaskId).Select(tu => tu.UserId).ToList();
 
@@ -145,7 +148,35 @@ namespace TaskManagement.Repository.Repositories
 
             await _dbSet.AddAsync(taskComment);
             await _context.SaveChangesAsync();
-            return taskComment;
+
+            foreach (var taskUserGroup in taskUserGroups)
+            {
+                var shouldRemove = false;
+                var userToRemove = 0;
+                foreach (var taskUserId in taskUsers)
+                {
+                    if(taskUserId == taskUserGroup.userId && taskUserGroup.taskId == taskComment.TaskId)
+                    {
+                        shouldRemove = true;
+                        userToRemove = taskUserId;
+                        break;
+                    }
+                }
+
+                if (shouldRemove) taskUsers.Remove(userToRemove);
+            }
+            
+            var baseNotifications = new List<BaseNotification>();
+            foreach (var taskUser in taskUsers)
+            {
+                var user = await _context.Users.FirstAsync(u => u.Id == userContext.UserId);
+                var baseNotification = await notificationRepository.AddAsync(new BaseNotification(
+                    taskUser, "New Task Comment",  user.FirstName + " " + user.LastName + ": "  
+                                                  + taskComment.Text, NotificationType.General));
+                baseNotifications.Add(baseNotification);
+            }
+            
+            return (taskComment, baseNotifications);
         }
     }
 }

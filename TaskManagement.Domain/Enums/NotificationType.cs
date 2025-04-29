@@ -10,7 +10,6 @@ namespace TaskManagement.Domain.Enums
     {
         General,
         TaskAssignmentRequest,
-        TaskAssignmentAccepted,
-        TaskAssignmentRejected
+        NewTaskComment
     }
 }

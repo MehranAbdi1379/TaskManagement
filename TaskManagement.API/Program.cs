@@ -103,6 +103,7 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaskAssignmentRequestRepository, TaskAssignmentRequestRepository>();
 builder.Services.AddScoped<IBaseRepository<BaseNotification>, BaseRepository<BaseNotification>>();
+builder.Services.AddSingleton<TaskGroupTracker>();
 
 
 builder.Services.AddEndpointsApiExplorer();
