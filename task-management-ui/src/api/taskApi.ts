@@ -1,3 +1,4 @@
+import { User } from "./authApi";
 import axiosInstance from "./axiosInstance";
 
 export interface Task {
@@ -108,7 +109,7 @@ export const AssignTaskToUserRespond = async (
   return response.data;
 };
 
-export const getTaskComments = async (
+export const getTaskCommentsApi = async (
   id: number,
   params: TaskCommentQueryParameters
 ): Promise<PagedResult<TaskComment>> => {
@@ -137,5 +138,28 @@ export const createTaskComment = async (
 export const deleteTaskComment = async (id: number): Promise<void> => {
   await axiosInstance.delete(
     "/task/".concat("0").concat("/comment/").concat(String(id))
+  );
+};
+
+export const getAssignedUsers = async (
+  id: number
+): Promise<
+  { userId: number; firstName: string; lastName: string; email: string }[]
+> => {
+  const response = await axiosInstance.get<
+    { firstName: string; lastName: string; email: string; userId: number }[]
+  >("/task/".concat(String(id)).concat("/assigned-users"));
+  return response.data;
+};
+
+export const unassignTaskUser = async (
+  taskId: number,
+  userId: number
+): Promise<void> => {
+  await axiosInstance.delete(
+    "/task/"
+      .concat(String(taskId))
+      .concat("/unassign-user/")
+      .concat(String(userId))
   );
 };
