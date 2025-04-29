@@ -62,7 +62,9 @@ namespace TaskManagement.Service.Services
             task.SetDescription(dto.Description);
             task.UpdatedAt = DateTime.Now;
             await baseRepository.UpdateAsync(task);
-            return mapper.Map<TaskResponseDto>(task);
+            var result = mapper.Map<TaskResponseDto>(task);
+            result.IsOwner = task.OwnerId == userContext.UserId;
+            return result;
         }
 
         public async Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters)
@@ -73,7 +75,9 @@ namespace TaskManagement.Service.Services
         public async Task<TaskResponseDto> GetTaskByIdAsync(int id)
         {
             var task = await baseRepository.GetTaskByIdAsync(id);
-            return mapper.Map<TaskResponseDto>(task);
+            var result = mapper.Map<TaskResponseDto>(task);
+            result.IsOwner = task.OwnerId == userContext.UserId;
+            return result;
         }
 
         public async Task DeleteTaskByIdAsync(int id)
@@ -87,7 +91,9 @@ namespace TaskManagement.Service.Services
             task.SetStatus(dto.Status);
             task.UpdatedAt = DateTime.Now;
             await baseRepository.UpdateAsync(task);
-            return mapper.Map<TaskResponseDto>(task);
+            var result = mapper.Map<TaskResponseDto>(task);
+            result.IsOwner = task.OwnerId == userContext.UserId;
+            return result;
         }
 
         private async Task AssignTaskToUserAsync(int taskId)
@@ -153,7 +159,7 @@ namespace TaskManagement.Service.Services
                     request.TaskOwnerId, "Task Assignment Accepted",
                     $"User ({user.FirstName + " " + user.LastName}) has accepted your task invitation for task" +
                     $"(Title: {task.Title}, Description: {task.Description})."
-                    ,NotificationType.TaskAssignmentAccepted
+                    ,NotificationType.General
                 );
             }
             else
@@ -162,16 +168,25 @@ namespace TaskManagement.Service.Services
                     request.TaskOwnerId,"Task Assignment Rejected",
                     $"User {user.FirstName + " " + user.LastName} has rejected your task invitation." +
                     $"(Title: {task.Title}, Description: {task.Description})."
-                    , NotificationType.TaskAssignmentRejected
+                    , NotificationType.General
                 );
             }
         }
 
-        //public async Task UnAsignTaskAsync(int taskId)
-        //{
-        //    var task = await baseRepository.GetTaskByIdAsync(taskId);
+        public async Task<List<TaskAssignedUserResponseDto>> GetTaskAssignedUsers(int taskId)
+        {
+            return await baseRepository.GetTaskAssignedUsersAsync(taskId);
+        }
 
-        //    await taskUserRepository.AddAsync(appTaskUser);
-        //}
+        public async Task<BaseNotification> UnassignTaskAsync(int taskId, int userId)
+        {
+            var task = await baseRepository.GetTaskByIdAsync(taskId);
+            await baseRepository.UnassignTaskAsync(taskId, userId);
+            return await notificationService.CreateNotification(
+                userId, "Task Unassignment",
+                $"You are unassigned from Task (Title: {task.Title}, Description: {task.Description})" 
+                ,NotificationType.General
+            );
+        }
     }
 }

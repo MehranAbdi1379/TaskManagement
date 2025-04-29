@@ -17,5 +17,7 @@ namespace TaskManagement.Service.Interfaces
         Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters);
         Task<BaseNotification> RequestTaskAssignmentAsync(string assigneeEmail, int taskId);
         Task<BaseNotification> RespondToTaskAssignmentAsync(int requestId, bool accept);
+        Task<List<TaskAssignedUserResponseDto>> GetTaskAssignedUsers(int taskId);
+        Task<BaseNotification> UnassignTaskAsync(int taskId, int userId);
     }
 }
