@@ -22,6 +22,7 @@ namespace TaskManagement.Service.Services
         private readonly IMapper mapper;
         private readonly IUserContext userContext;
         private readonly UserManager<ApplicationUser> userManager;
+        private readonly IBaseRepository<CommentNotification> commentNotificationRepository;
 
         public TaskCommentService(ITaskCommentRepository baseRepository, IMapper mapper, IUserContext userContext, UserManager<ApplicationUser> userManager)
         {
@@ -34,7 +35,15 @@ namespace TaskManagement.Service.Services
         public async Task<(TaskCommentResponseDto,List<BaseNotification>)> CreateTaskCommentAsync(CreateTaskCommentDto dto, int taskId, List<(int userId,int taskId)> taskUserGroups)
         {
             var taskComment = new TaskComment(taskId, userContext.UserId, dto.Text);
-            var (_, baseNotifications) = await baseRepository.AddTaskCommentAsync(taskComment, taskUserGroups);
+            var (newTaskComment, baseNotifications) = await baseRepository.AddTaskCommentAsync(taskComment, taskUserGroups);
+            taskComment = newTaskComment;
+
+            foreach (var baseNotification in baseNotifications)
+            {
+                var commentNotification = new CommentNotification(baseNotification.Id, taskComment.Id);
+                await commentNotificationRepository.AddAsync(commentNotification);
+            }
+            
             var result = mapper.Map<TaskCommentResponseDto>(taskComment);
             var user = userManager.Users.First(u => u.Id == userContext.UserId);
             result.UserFullName = user.FirstName + " " + user.LastName;
