@@ -17,7 +17,7 @@ namespace TaskManagement.Repository.Repositories
     {
         private readonly IUserContext userContext;
         private readonly INotificationRepository notificationRepository;
-        public TaskCommentRepository(TaskManagementDBContext context, IUserContext userContext, INotificationRepository notificationRepository) : base(context)
+        public TaskCommentRepository(TaskManagementDbContext context, IUserContext userContext, INotificationRepository notificationRepository) : base(context)
         {
             this.userContext = userContext;
             this.notificationRepository = notificationRepository;
@@ -68,6 +68,22 @@ namespace TaskManagement.Repository.Repositories
             foreach (var taskComment in taskComments)
             {
                 taskComment.UserFullName = users.Where(x => x.Id == taskComment.UserId).Select(x => x.FirstName + " " + x.LastName).First();
+            }
+            
+            var commentNotifications = new List<CommentNotification>();
+
+            foreach (var taskComment in taskComments)
+            {
+                var commentNotification = await _context.CommentNotifications.FirstOrDefaultAsync(x => x.CommentId == taskComment.Id);
+                if(commentNotification != null && 
+                   await _context.Notifications.AnyAsync(x => x.Id == commentNotification.NotificationId && x.IsRead == false)) commentNotifications.Add(commentNotification);
+            }
+
+            foreach (var commentNotification in commentNotifications)
+            {
+                _context.Notifications.Remove(await _context.Notifications.FirstAsync(x => x.Id == commentNotification.NotificationId));
+                _context.CommentNotifications.Remove(await _context.CommentNotifications.FirstAsync(x => x.Id == commentNotification.Id));
+                await _context.SaveChangesAsync();
             }
 
             return new PagedResult<TaskCommentResponseDto>

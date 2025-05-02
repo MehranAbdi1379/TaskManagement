@@ -9,15 +9,15 @@ using TaskManagement.Repository.EntityConfigurations;
 
 namespace TaskManagement.Repository
 {
-    public class TaskManagementDBContext: IdentityDbContext<ApplicationUser, ApplicationRole, int>
+    public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options)
+        : IdentityDbContext<ApplicationUser, ApplicationRole, int>(options)
     {
-        public TaskManagementDBContext(DbContextOptions<TaskManagementDBContext> options) : base(options) { }
-
         public DbSet<AppTask> Tasks { get; set; }
         public DbSet<TaskComment> TaskComments { get; set; }
         public DbSet<AppTaskUser> TaskUsers { get; set; }
         public DbSet<BaseNotification> Notifications { get; set; }
         public DbSet<TaskAssignmentRequest> TaskAssignmentRequests { get; set; }
+        public DbSet<CommentNotification> CommentNotifications { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,6 +29,7 @@ namespace TaskManagement.Repository
             modelBuilder.ApplyConfiguration(new AppTaskUserConfiguration());
             modelBuilder.ApplyConfiguration(new TaskAssignmentRequestConfiguration());
             modelBuilder.ApplyConfiguration(new NotificationConfiguration());
+            modelBuilder.ApplyConfiguration(new CommentNotificationConfiguration());
         }
     }
 }

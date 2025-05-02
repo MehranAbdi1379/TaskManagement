@@ -34,7 +34,7 @@ builder.Services.AddControllers()
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 
 // Register DbContext with dependency injection
-builder.Services.AddDbContext<TaskManagementDBContext>(options =>
+builder.Services.AddDbContext<TaskManagementDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
 
 builder.Services.AddSignalR();
@@ -49,7 +49,7 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     options.Password.RequireLowercase = false;  
     options.Password.RequiredUniqueChars = 0;  
 })
-    .AddEntityFrameworkStores<TaskManagementDBContext>()
+    .AddEntityFrameworkStores<TaskManagementDbContext>()
     .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
