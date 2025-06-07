@@ -14,7 +14,7 @@ namespace TaskManagement.Repository.Repositories
     public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
     {
         private readonly IUserContext userContext;
-        public TaskRepository(TaskManagementDbContext context, IUserContext userContext) : base(context)
+        public TaskRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
         {
             this.userContext = userContext;
         }

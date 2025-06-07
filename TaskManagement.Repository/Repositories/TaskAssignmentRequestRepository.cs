@@ -12,7 +12,7 @@ namespace TaskManagement.Repository.Repositories
     public class TaskAssignmentRequestRepository : BaseRepository<TaskAssignmentRequest>, ITaskAssignmentRequestRepository
     {
         private readonly IUserContext userContext;
-        public TaskAssignmentRequestRepository(TaskManagementDbContext context, IUserContext userContext) : base(context)
+        public TaskAssignmentRequestRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
         {
             this.userContext = userContext;
         }

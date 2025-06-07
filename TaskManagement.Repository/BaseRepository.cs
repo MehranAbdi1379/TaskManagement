@@ -10,10 +10,10 @@ namespace TaskManagement.Repository
 {
     public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
     {
-        protected readonly TaskManagementDbContext _context;
+        protected readonly TaskManagementDBContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        public BaseRepository(TaskManagementDbContext context)
+        public BaseRepository(TaskManagementDBContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

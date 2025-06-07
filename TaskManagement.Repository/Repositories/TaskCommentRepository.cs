@@ -17,7 +17,7 @@ namespace TaskManagement.Repository.Repositories
     {
         private readonly IUserContext userContext;
         private readonly INotificationRepository notificationRepository;
-        public TaskCommentRepository(TaskManagementDbContext context, IUserContext userContext, INotificationRepository notificationRepository) : base(context)
+        public TaskCommentRepository(TaskManagementDBContext context, IUserContext userContext, INotificationRepository notificationRepository) : base(context)
         {
             this.userContext = userContext;
             this.notificationRepository = notificationRepository;

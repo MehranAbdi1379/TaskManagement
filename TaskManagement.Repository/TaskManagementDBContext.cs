@@ -9,7 +9,7 @@ using TaskManagement.Repository.EntityConfigurations;
 
 namespace TaskManagement.Repository
 {
-    public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options)
+    public class TaskManagementDBContext(DbContextOptions<TaskManagementDBContext> options)
         : IdentityDbContext<ApplicationUser, ApplicationRole, int>(options)
     {
         public DbSet<AppTask> Tasks { get; set; }
