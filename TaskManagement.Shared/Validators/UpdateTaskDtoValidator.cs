@@ -1,12 +1,7 @@
 ﻿using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TaskManagement.Service.DTOs.Task;
+using TaskManagement.Shared.DTOs.Task;
 
-namespace TaskManagement.Service.Validators
+namespace TaskManagement.Shared.Validators
 {
     public class UpdateTaskDtoValidator: AbstractValidator<UpdateTaskDto>
     {
