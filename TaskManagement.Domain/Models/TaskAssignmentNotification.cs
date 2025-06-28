@@ -1,15 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TaskManagement.Domain.Models;
 
-namespace TaskManagement.Domain.Models
+public class TaskAssignmentNotification : BaseEntity
 {
-    public class TaskAssignmentNotification: BaseEntity
+    public TaskAssignmentNotification()
     {
-        public int NotificationId { get; set; }
-        public bool Accepted { get; set; }
-        public int RequestId { get; set; }
+    }
+
+    public TaskAssignmentNotification(int notificationId, bool accepted, int requestId)
+    {
+        SetAccepted(accepted);
+        SetRequestId(requestId);
+        SetNotificationId(notificationId);
+    }
+
+    public int NotificationId { get; private set; }
+    public bool Accepted { get; private set; }
+    public int RequestId { get; private set; }
+
+    public void SetAccepted(bool accepted)
+    {
+        Accepted = accepted;
+    }
+
+    public void SetRequestId(int requestId)
+    {
+        RequestId = requestId;
+    }
+
+    public void SetNotificationId(int notificationId)
+    {
+        NotificationId = notificationId;
     }
 }

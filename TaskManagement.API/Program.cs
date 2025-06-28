@@ -12,15 +12,14 @@ using System.Text;
 using TaskManagement.API.Hubs;
 using TaskManagement.API.Middlewares;
 using TaskManagement.API.Services;
+using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository;
 using TaskManagement.Repository.Repositories;
-using TaskManagement.Service.DTOs;
-using TaskManagement.Service.Interfaces;
-using TaskManagement.Service.Mappings;
 using TaskManagement.Service.Services;
-using TaskManagement.Service.Validators;
+using TaskManagement.Shared.Mappings;
 using TaskManagement.Shared.ServiceInterfaces;
+using TaskManagement.Shared.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
