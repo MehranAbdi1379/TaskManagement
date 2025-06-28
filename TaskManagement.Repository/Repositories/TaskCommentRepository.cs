@@ -107,12 +107,6 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
             .Take(pageSize)
             .ToListAsync();
 
-        //TODO: Add user full name to DTO in the service layer
-
-        // foreach (var taskComment in taskComments)
-        //     taskComment.UserFullName = users.Where(x => x.Id == taskComment.UserId)
-        //         .Select(x => x.FirstName + " " + x.LastName).First();
-
         var commentNotifications = new List<CommentNotification>();
 
         foreach (var taskComment in taskComments)
