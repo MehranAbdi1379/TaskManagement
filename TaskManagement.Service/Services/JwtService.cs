@@ -9,6 +9,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using TaskManagement.Domain.Models;
+using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.Service.Services
 {

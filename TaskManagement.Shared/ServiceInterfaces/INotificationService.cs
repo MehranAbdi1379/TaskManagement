@@ -1,9 +1,9 @@
 ﻿using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
-using TaskManagement.Service.DTOs;
+using TaskManagement.Shared.DTOs;
 using TaskManagement.Shared.DTOs.Notification;
 
-namespace TaskManagement.Service.Services
+namespace TaskManagement.Shared.ServiceInterfaces
 {
     public interface INotificationService
     {

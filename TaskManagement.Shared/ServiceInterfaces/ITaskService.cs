@@ -1,11 +1,8 @@
-﻿
-
-using TaskManagement.Domain.Models;
-using TaskManagement.Service.DTOs;
-using TaskManagement.Service.DTOs.Task;
+﻿using TaskManagement.Domain.Models;
+using TaskManagement.Shared.DTOs;
 using TaskManagement.Shared.DTOs.Task;
 
-namespace TaskManagement.Service.Interfaces
+namespace TaskManagement.Shared.ServiceInterfaces
 {
     public interface ITaskService
     {

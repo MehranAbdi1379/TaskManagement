@@ -1,99 +1,66 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
-using TaskManagement.Service.DTOs;
-using TaskManagement.Service.DTOs.Task;
-using TaskManagement.Shared.DTOs.Notification;
 using TaskManagement.Shared.ServiceInterfaces;
 
-namespace TaskManagement.Repository.Repositories
+namespace TaskManagement.Repository.Repositories;
+
+public class NotificationRepository : BaseRepository<BaseNotification>, INotificationRepository
 {
-    public class NotificationRepository : BaseRepository<BaseNotification>, INotificationRepository
+    protected readonly IUserContext userContext;
+
+    public NotificationRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
     {
-        protected readonly IUserContext userContext;
-        public NotificationRepository(TaskManagementDBContext context, IUserContext userContext) : base(context)
-        {
-            this.userContext = userContext;
-        }
+        this.userContext = userContext;
+    }
 
-        public async Task<PagedResult<NotificationResponseDto>> GetActiveNotificationsByUserId(NotificationQueryParameters queryParams)
-        {
-            var query = _context.Notifications.AsQueryable();
+    public async Task<(List<BaseNotification>, int totalCount)> GetActiveNotificationsByUserId(int pageNumber,
+        int pageSize,
+        string sortOrder)
+    {
+        var query = _context.Notifications.AsQueryable().AsNoTracking();
 
-            query = query.Where(notification => notification.Deleted == false );
+        query = query.Where(notification => notification.Deleted == false);
 
-            query = query.Where(notification => notification.IsRead == false && notification.UserId == userContext.UserId);
+        query = query.Where(notification => notification.IsRead == false && notification.UserId == userContext.UserId);
 
-            // Sorting by CreatedAt
-            query = queryParams.SortOrder.ToLower() == "desc"
-                ? query.OrderByDescending(task => task.CreatedAt)
-                : query.OrderBy(task => task.CreatedAt);
+        // Sorting by CreatedAt
+        query = sortOrder.ToLower() == "desc"
+            ? query.OrderByDescending(task => task.CreatedAt)
+            : query.OrderBy(task => task.CreatedAt);
 
-            // Paging
-            var totalCount = await query.CountAsync();
-            var tasks = await query
-                .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
-                .Take(queryParams.PageSize)
-                .Select(notification => new NotificationResponseDto
-                {
-                    Id = notification.Id,
-                    Title = notification.Title,
-                    Content = notification.Content,
-                    IsRead = notification.IsRead,
-                    Type = notification.Type.ToString(),
-                    UserId = notification.UserId
-                })
-                .ToListAsync();
+        // Paging
+        var totalCount = await query.CountAsync();
+        var notifications = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
-            return new PagedResult<NotificationResponseDto>
-            {
-                Items = tasks,
-                TotalCount = totalCount,
-                PageNumber = queryParams.PageNumber,
-                PageSize = queryParams.PageSize
-            };
-        }
+        return (notifications, totalCount);
+    }
 
-        public async Task<PagedResult<NotificationResponseDto>> GetNotificationHistoryByUserId(NotificationQueryParameters queryParams)
-        {
-            var query = _context.Notifications.AsQueryable();
+    public async Task<(List<BaseNotification> notifications, int totalCount)> GetNotificationHistoryByUserId(
+        int pageSize, int pageNumber,
+        string sortOrder)
+    {
+        var query = _context.Notifications.AsQueryable();
 
-            query = query.Where(notification => notification.Deleted == false);
+        query = query.Where(notification => notification.Deleted == false);
 
-            query = query.Where(notification => notification.IsRead == true && notification.UserId == userContext.UserId);
+        query = query.Where(notification => notification.IsRead == true && notification.UserId == userContext.UserId);
 
-            // Sorting by CreatedAt
-            query = queryParams.SortOrder.ToLower() == "desc"
-                ? query.OrderByDescending(task => task.CreatedAt)
-                : query.OrderBy(task => task.CreatedAt);
+        // Sorting by CreatedAt
+        query = sortOrder.ToLower() == "desc"
+            ? query.OrderByDescending(task => task.CreatedAt)
+            : query.OrderBy(task => task.CreatedAt);
 
-            // Paging
-            var totalCount = await query.CountAsync();
-            var tasks = await query
-                .Skip((queryParams.PageNumber - 1) * queryParams.PageSize)
-                .Take(queryParams.PageSize)
-                .Select(notification => new NotificationResponseDto
-                {
-                    Id = notification.Id,
-                    Title = notification.Title,
-                    Content = notification.Content,
-                    IsRead = notification.IsRead,
-                    Type = notification.Type.ToString(),
-                    UserId = notification.UserId
-                })
-                .ToListAsync();
+        // Paging
+        var totalCount = await query.CountAsync();
+        var notifications = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
 
-            return new PagedResult<NotificationResponseDto>
-            {
-                Items = tasks,
-                TotalCount = totalCount,
-                PageNumber = queryParams.PageNumber,
-                PageSize = queryParams.PageSize
-            };
-        }
+        return (notifications, totalCount);
     }
 }

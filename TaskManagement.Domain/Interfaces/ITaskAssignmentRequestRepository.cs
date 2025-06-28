@@ -1,6 +1,6 @@
 ﻿using TaskManagement.Domain.Models;
 
-namespace TaskManagement.Repository.Repositories
+namespace TaskManagement.Domain.Interfaces
 {
     public interface ITaskAssignmentRequestRepository: IBaseRepository<TaskAssignmentRequest>
     {

@@ -1,6 +1,6 @@
 ﻿using TaskManagement.Domain.Models;
 
-namespace TaskManagement.Service.Services
+namespace TaskManagement.Shared.ServiceInterfaces
 {
     public interface IJwtService
     {

@@ -1,8 +1,8 @@
 ﻿using TaskManagement.Domain.Models;
-using TaskManagement.Service.DTOs;
+using TaskManagement.Shared.DTOs;
 using TaskManagement.Shared.DTOs.TaskComment;
 
-namespace TaskManagement.Service.Services
+namespace TaskManagement.Shared.ServiceInterfaces
 {
     public interface ITaskCommentService
     {

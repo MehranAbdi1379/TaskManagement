@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskManagement.Domain.Models;
 
-namespace TaskManagement.Repository;
+namespace TaskManagement.Repository.EntityConfigurations;
 
 public class CommentNotificationConfiguration: IEntityTypeConfiguration<CommentNotification>
 {

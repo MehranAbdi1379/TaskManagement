@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Services;
 using TaskManagement.Shared.DTOs.Notification;
+using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.API.Controllers
 {

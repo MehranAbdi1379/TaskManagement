@@ -1,6 +1,6 @@
 ﻿using TaskManagement.Domain.Models;
 
-namespace TaskManagement.Repository
+namespace TaskManagement.Domain.Interfaces
 {
     public interface IBaseRepository<T> where T : BaseEntity
     {
