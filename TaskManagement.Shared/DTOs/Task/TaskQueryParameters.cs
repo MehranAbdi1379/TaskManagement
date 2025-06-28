@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using TaskManagement.Domain.Enums;
+﻿using TaskManagement.Domain.Enums;
 
-namespace TaskManagement.Service.DTOs.Task
+namespace TaskManagement.Shared.DTOs.Task
 {
     public class TaskQueryParameters
     {

@@ -15,4 +15,8 @@
     <ProjectReference Include="..\TaskManagement.Domain\TaskManagement.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="RepositoryInterfaces\" />
+  </ItemGroup>
+
 </Project>

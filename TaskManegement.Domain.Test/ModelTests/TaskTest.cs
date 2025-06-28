@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using TaskManagement.Domain.Enums;
+using TaskManagement.Domain.Exceptions;
+using TaskManagement.Domain.Models;
 
 namespace TaskManegement.Domain.Test.ModelTests
 {
-    using System;
-    using TaskManagement.Domain.Enums;
-    using TaskManagement.Domain.Exceptions;
-    using TaskManagement.Domain.Models;
-    using Xunit;
-
     namespace YourProject.Domain.Tests
     {
         public class AppTaskTests

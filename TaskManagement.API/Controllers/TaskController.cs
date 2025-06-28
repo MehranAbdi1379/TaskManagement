@@ -3,12 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using TaskManagement.API.Hubs;
 using TaskManagement.API.Services;
-using TaskManagement.Service.DTOs.Task;
-using TaskManagement.Service.Interfaces;
 using TaskManagement.Service.Services;
 using TaskManagement.Shared.DTOs.Notification;
 using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.DTOs.TaskComment;
+using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.API.Controllers
 {
