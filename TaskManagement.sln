@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Repository",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Service", "TaskManagement.Service\TaskManagement.Service.csproj", "{3A36A0A2-5F8F-4AE0-93CD-740E0F832B19}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManegement.Domain.Test", "TaskManegement.Domain.Test\TaskManegement.Domain.Test.csproj", "{0E0C6966-78D5-4D8E-A40E-67BA95C87577}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Domain.Test", "TaskManagement.Domain.Test\TaskManagement.Domain.Test.csproj", "{0E0C6966-78D5-4D8E-A40E-67BA95C87577}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared", "Shared", "{293E2980-749F-4E61-A576-296E3BE5798F}"
 EndProject
