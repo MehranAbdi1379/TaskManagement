@@ -8,8 +8,6 @@ public class TaskProfile : Profile
 {
     public TaskProfile()
     {
-        CreateMap<CreateTaskDto, AppTask>()
-            .ConstructUsing(dto => new AppTask(dto.Title, dto.Description, dto.Status));
         CreateMap<AppTask, TaskResponseDto>();
     }
 }

@@ -12,7 +12,6 @@ namespace TaskManagement.Service.Services;
 public class TaskCommentService : ITaskCommentService
 {
     private readonly ITaskCommentRepository baseRepository;
-    private readonly IBaseRepository<CommentNotification> commentNotificationRepository;
     private readonly IMapper mapper;
     private readonly IUserContext userContext;
     private readonly UserManager<ApplicationUser> userManager;
@@ -33,14 +32,14 @@ public class TaskCommentService : ITaskCommentService
         var (newTaskComment, baseNotifications) = await baseRepository.AddTaskCommentAsync(taskComment, taskUserGroups);
         taskComment = newTaskComment;
 
-        foreach (var baseNotification in baseNotifications)
-        {
-            var commentNotification = new CommentNotification(baseNotification.Id, taskComment.Id);
-            await commentNotificationRepository.AddAsync(commentNotification);
-        }
+        foreach (var baseNotification in baseNotifications) taskComment.Notifications.Add(baseNotification);
+
+        await baseRepository.UpdateAsync(taskComment);
 
         var result = mapper.Map<TaskCommentResponseDto>(taskComment);
-        var user = userManager.Users.First(u => u.Id == userContext.UserId);
+        var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
+        if (user == null) throw new Exception($"User not found with id {userContext.UserId}");
+
         result.UserFullName = user.FirstName + " " + user.LastName;
         result.IsOwner = true;
         return (result, baseNotifications);
@@ -52,7 +51,7 @@ public class TaskCommentService : ITaskCommentService
         if (parameters.CommentOwner == false)
         {
             var (taskComments, totalCount) = await baseRepository.GetTaskCommentsAsync(parameters.PageNumber,
-                parameters.PageSize, parameters.SortOrder, taskId);
+                parameters.PageSize, parameters.SortOrder, taskId, false);
 
             var mappedResults = mapper.Map<List<TaskCommentResponseDto>>(taskComments);
 
@@ -87,8 +86,8 @@ public class TaskCommentService : ITaskCommentService
         else
         {
             var (taskComments, totalCount) =
-                await baseRepository.GetTaskCommentsByTaskAndUserIdAsync(parameters.PageSize, parameters.PageNumber,
-                    parameters.SortOrder, taskId);
+                await baseRepository.GetTaskCommentsAsync(parameters.PageSize, parameters.PageNumber,
+                    parameters.SortOrder, taskId, true);
 
             var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
             if (user == null) throw new InvalidOperationException($"User with ID '{userContext.UserId}' not found.");

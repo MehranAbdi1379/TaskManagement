@@ -17,13 +17,12 @@ public class TaskService : ITaskService
     private readonly IBaseRepository<BaseNotification> notificationRepository;
     private readonly INotificationService notificationService;
     private readonly ITaskAssignmentRequestRepository taskAssignmentRequestRepository;
-    private readonly IBaseRepository<AppTaskUser> taskUserRepository;
     private readonly IUserContext userContext;
     private readonly UserManager<ApplicationUser> userManager;
 
 
     public TaskService(ITaskRepository baseRepository, IMapper mapper, IUserContext userContext,
-        UserManager<ApplicationUser> userManager, IBaseRepository<AppTaskUser> taskUserRepository,
+        UserManager<ApplicationUser> userManager,
         ITaskAssignmentRequestRepository taskAssignmentRequestRepository, INotificationService notificationService,
         IBaseRepository<BaseNotification> notificationRepository)
     {
@@ -31,7 +30,6 @@ public class TaskService : ITaskService
         this.mapper = mapper;
         this.userContext = userContext;
         this.userManager = userManager;
-        this.taskUserRepository = taskUserRepository;
         this.taskAssignmentRequestRepository = taskAssignmentRequestRepository;
         this.notificationService = notificationService;
         this.notificationRepository = notificationRepository;
@@ -40,7 +38,7 @@ public class TaskService : ITaskService
 
     public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
     {
-        var task = mapper.Map<AppTask>(dto);
+        var task = new AppTask(dto.Title, dto.Description, dto.Status);
         task.SetOwnerId(userContext.UserId);
         await baseRepository.AddAsync(task);
         return mapper.Map<TaskResponseDto>(task);
@@ -115,8 +113,8 @@ public class TaskService : ITaskService
         if (await taskAssignmentRequestRepository.RequestAlreadyExists(assignee.Id, taskId))
             throw new Exception("This request already exists.");
 
-        var taskUsers = (await taskUserRepository.GetAllAsync()).Where(x => x.TaskId == taskId);
-        if (assignee.Id == userContext.UserId || taskUsers.Any(x => x.UserId == userContext.UserId))
+        var taskUsers = task.AssignedUsers;
+        if (assignee.Id == userContext.UserId || taskUsers.Any(x => x.Id == userContext.UserId))
             throw new Exception("User already has the task.");
 
         var owner = await userManager.Users.FirstAsync(x => x.Id == userContext.UserId);
@@ -194,7 +192,10 @@ public class TaskService : ITaskService
 
     private async Task AssignTaskToUserAsync(int taskId)
     {
-        var appTaskUser = new AppTaskUser(userContext.UserId, taskId);
-        await taskUserRepository.AddAsync(appTaskUser);
+        var user = await userManager.Users.FirstAsync(u => u.Id == userContext.UserId);
+        if (user == null) throw new Exception("User does not exist to assign to task.");
+        var task = await baseRepository.GetTaskByIdAsync(taskId);
+        task.AssignedUsers.Add(user);
+        await baseRepository.UpdateAsync(task);
     }
 }
