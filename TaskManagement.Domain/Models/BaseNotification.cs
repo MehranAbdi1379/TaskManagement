@@ -23,6 +23,9 @@ public class BaseNotification : BaseEntity
     public NotificationType Type { get; private set; }
     public bool IsRead { get; private set; }
 
+    public ICollection<TaskComment> TaskComments { get; set; }
+    public ApplicationUser User { get; set; }
+
     public void SetUserId(int userId)
     {
         UserId = userId;

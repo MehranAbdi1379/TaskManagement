@@ -9,6 +9,9 @@ public class ApplicationUser : IdentityUser<int>
     public string LastName { get; private set; }
     public string PhoneNumber { get; set; }
 
+    public ICollection<AppTask> AssignedTasks { get; set; }
+    public ICollection<BaseNotification> Notifications { get; set; }
+
     public void SetFirstName(string firstName)
     {
         if (string.IsNullOrWhiteSpace(firstName))

@@ -1,54 +1,51 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace TaskManagement.Domain.Models;
 
-namespace TaskManagement.Domain.Models
+public class TaskAssignmentRequest : BaseEntity
 {
-    public class TaskAssignmentRequest: BaseEntity
+    public TaskAssignmentRequest()
     {
-        public int TaskOwnerId { get; private set; }
-        public int AssigneeId { get; private set; }
-        public int TaskId { get; private set; }
-        public bool IsAccepted { get; private set; } = false;
-        public int RequestNotificationId { get; private set; }
+    }
 
-        public TaskAssignmentRequest()
-        {
-            
-        }
+    public TaskAssignmentRequest(int taskOwnerId, int assigneeId, int taskId)
+    {
+        SetTaskOwnerId(taskOwnerId);
+        SetAssigneeId(assigneeId);
+        SetTaskId(taskId);
+    }
 
-        public TaskAssignmentRequest(int taskOwnerId, int assigneeId, int taskId)
-        {
-            SetTaskOwnerId(taskOwnerId);
-            SetAssigneeId(assigneeId);
-            SetTaskId(taskId);
-        }
+    public int TaskOwnerId { get; private set; }
+    public int AssigneeId { get; private set; }
+    public int TaskId { get; private set; }
+    public bool IsAccepted { get; private set; }
+    public int RequestNotificationId { get; private set; }
 
-        public void SetRequestNotificationId(int requestNotificationId)
-        {
-            RequestNotificationId = requestNotificationId;
-        }
+    public ApplicationUser TaskOwner { get; set; }
+    public ApplicationUser Assignee { get; set; }
+    public AppTask Task { get; set; }
+    public BaseNotification RequestNotification { get; set; }
 
-        public void SetTaskOwnerId(int taskOwnerId)
-        {
-            TaskOwnerId = taskOwnerId;
-        }
+    public void SetRequestNotificationId(int requestNotificationId)
+    {
+        RequestNotificationId = requestNotificationId;
+    }
 
-        public void SetAssigneeId(int assigneeId)
-        {
-            AssigneeId = assigneeId;
-        }
+    public void SetTaskOwnerId(int taskOwnerId)
+    {
+        TaskOwnerId = taskOwnerId;
+    }
 
-        public void SetTaskId(int taskId)
-        {
-            TaskId = taskId;
-        }
+    public void SetAssigneeId(int assigneeId)
+    {
+        AssigneeId = assigneeId;
+    }
 
-        public void SetIsAccepted(bool isAccepted)
-        {
-            IsAccepted = isAccepted;
-        }
+    public void SetTaskId(int taskId)
+    {
+        TaskId = taskId;
+    }
+
+    public void SetIsAccepted(bool isAccepted)
+    {
+        IsAccepted = isAccepted;
     }
 }

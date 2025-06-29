@@ -21,6 +21,10 @@ public class AppTask : BaseEntity
     public Status Status { get; private set; }
     public int OwnerId { get; private set; }
 
+    public ApplicationUser Owner { get; set; }
+    public ICollection<ApplicationUser> AssignedUsers { get; set; }
+    public ICollection<TaskComment> Comments { get; set; }
+    public ICollection<TaskAssignmentRequest> TaskAssignmentRequests { get; set; }
 
     public void SetTitle(string title)
     {
@@ -46,7 +50,7 @@ public class AppTask : BaseEntity
 
     private void ValidateStatus(Status taskStatus)
     {
-        if (!Enum.IsDefined(typeof(TaskStatus), taskStatus))
+        if (!Enum.IsDefined(typeof(Status), taskStatus))
             throw new DomainException($"Invalid Task Status Code with code {taskStatus} for Task Id {Id}");
     }
 
