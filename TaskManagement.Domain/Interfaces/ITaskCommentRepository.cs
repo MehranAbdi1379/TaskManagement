@@ -6,13 +6,9 @@ public interface ITaskCommentRepository : IBaseRepository<TaskComment>
 {
     Task DeleteTaskCommentAsync(int id);
 
-    Task<(List<TaskComment> comments, int totalCount)> GetTaskCommentsAsync(int pageNumber, int pageSize,
-        string sortOrder,
-        int taskId);
-
-    Task<(List<TaskComment> comments, int totalCount)> GetTaskCommentsByTaskAndUserIdAsync(int pageSize, int pageNumber,
-        string sortOrder,
-        int taskId);
+    Task<(List<TaskComment> comments, int totalCount)> GetTaskCommentsAsync(
+        int pageNumber, int pageSize, string sortOrder,
+        int taskId, bool ownedComments);
 
     Task<(TaskComment, List<BaseNotification>)> AddTaskCommentAsync(TaskComment taskComment,
         List<(int userId, int taskId)> taskUserGroups);

@@ -24,7 +24,9 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
 
     public async Task<T> GetByIdAsync(int id)
     {
-        return await _dbSet.Where(x => x.Id == id && x.Deleted == false).FirstAsync();
+        var entity = await _dbSet.Where(x => x.Id == id && x.Deleted == false).FirstOrDefaultAsync();
+        if (entity == null) throw new NullReferenceException($"Entity of type {typeof(T)} with id {id} not found");
+        return entity;
     }
 
     public async Task<IEnumerable<T>> GetAllAsync()
@@ -41,7 +43,20 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
 
     public async Task DeleteAsync(int id)
     {
-        var entity = await _dbSet.FirstAsync(x => x.Id == id && x.Deleted == false);
+        var entity = await _dbSet.FirstOrDefaultAsync(x => x.Id == id && x.Deleted == false);
+        if (entity == null) throw new NullReferenceException($"Entity of type {typeof(T)} not found");
+        entity.Delete();
+        _dbSet.Update(entity);
+        await _context.SaveChangesAsync();
+    }
+
+    public bool Exist(int id)
+    {
+        return _dbSet.Any(x => x.Id == id && x.Deleted == false);
+    }
+
+    public async Task DeleteAsync(T entity)
+    {
         entity.Delete();
         _dbSet.Update(entity);
         await _context.SaveChangesAsync();

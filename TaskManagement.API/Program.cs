@@ -1,14 +1,10 @@
-using FluentValidation;
+using System.Text;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Text;
 using TaskManagement.API.Hubs;
 using TaskManagement.API.Middlewares;
 using TaskManagement.API.Services;
@@ -24,7 +20,7 @@ using TaskManagement.Shared.Validators;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
-        .AddFluentValidation(config =>
+    .AddFluentValidation(config =>
     {
         config.RegisterValidatorsFromAssemblyContaining<CreateTaskDtoValidator>();
         config.RegisterValidatorsFromAssemblyContaining<UpdateTaskDtoValidator>();
@@ -40,50 +36,47 @@ builder.Services.AddSignalR();
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
-{
-    options.Password.RequireDigit = false;   
-    options.Password.RequiredLength = 3;     
-    options.Password.RequireNonAlphanumeric = false; 
-    options.Password.RequireUppercase = false;  
-    options.Password.RequireLowercase = false;  
-    options.Password.RequiredUniqueChars = 0;  
-})
+    {
+        options.Password.RequireDigit = false;
+        options.Password.RequiredLength = 3;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequiredUniqueChars = 0;
+    })
     .AddEntityFrameworkStores<TaskManagementDBContext>()
     .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
 var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true
-    };
-    options.Events = new JwtBearerEvents
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
     {
-        OnMessageReceived = context =>
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            // Try to get the JWT token from cookies
-            var token = context.Request.Cookies["jwt"];
-            if (!string.IsNullOrEmpty(token))
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
             {
-                context.Token = token;
+                // Try to get the JWT token from cookies
+                var token = context.Request.Cookies["jwt"];
+                if (!string.IsNullOrEmpty(token)) context.Token = token;
+                return Task.CompletedTask;
             }
-            return Task.CompletedTask;
-        }
-    };
-});
+        };
+    });
 
 builder.Services.AddAuthorization();
 
@@ -97,7 +90,6 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IUserContext, UserContextWeb>();
 builder.Services.AddScoped<ITaskCommentRepository, TaskCommentRepository>();
 builder.Services.AddScoped<ITaskCommentService, TaskCommentService>();
-builder.Services.AddScoped<IBaseRepository<AppTaskUser>, BaseRepository<AppTaskUser>>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ITaskAssignmentRequestRepository, TaskAssignmentRequestRepository>();
@@ -139,7 +131,6 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -153,11 +144,11 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseCors(policy =>
     policy.WithOrigins("http://localhost:5174")
-          .WithOrigins("http://localhost:5173")
-          .WithOrigins("http://localhost:5175")
-          .AllowAnyMethod()
-          .AllowAnyHeader()
-          .AllowCredentials());
+        .WithOrigins("http://localhost:5173")
+        .WithOrigins("http://localhost:5175")
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials());
 
 
 app.UseHttpsRedirection();
