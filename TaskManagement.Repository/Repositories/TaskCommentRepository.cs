@@ -20,28 +20,26 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
 
     public async Task DeleteTaskCommentAsync(int id)
     {
-        var taskComment = await _dbSet.FirstAsync(x => x.Id == id && x.Deleted == false);
+        var taskComment = await _dbSet.FirstOrDefaultAsync(x => x.Id == id && x.Deleted == false);
+        if (taskComment == null) throw new InvalidOperationException($"TaskComment with id {id} not found");
         if (taskComment.UserId != userContext.UserId) throw new Exception("Task Comment does not belong to the user.");
-        taskComment.Delete();
-        _dbSet.Update(taskComment);
-        await _context.SaveChangesAsync();
+        await DeleteAsync(taskComment);
     }
 
     public async Task<(TaskComment, List<BaseNotification>)> AddTaskCommentAsync(TaskComment taskComment,
         List<(int userId, int taskId)> taskUserGroups)
     {
-        var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskComment.TaskId).Select(tu => tu.UserId)
-            .ToList();
+        var task = await _context.Tasks.Include(appTask => appTask.AssignedUsers)
+            .FirstOrDefaultAsync(x => x.Id == taskComment.TaskId);
+        if (task == null) throw new Exception($"Task with id {taskComment.TaskId} not found");
 
-        var taskOwner = _context.Tasks.First(t => t.Id == taskComment.TaskId);
-
-        taskUsers = taskUsers.Append(taskOwner.OwnerId).ToList();
+        var taskUsers = task.AssignedUsers.Select(u => u.Id).ToList();
+        taskUsers = taskUsers.Append(task.OwnerId).ToList();
 
         if (taskUsers.All(tu => tu != userContext.UserId))
             throw new Exception("User does not have permission to access the task.");
 
-        await _dbSet.AddAsync(taskComment);
-        await _context.SaveChangesAsync();
+        await AddAsync(taskComment);
 
         foreach (var taskUserGroup in taskUserGroups)
         {
@@ -58,10 +56,11 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
             if (shouldRemove) taskUsers.Remove(userToRemove);
         }
 
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
+        if (user == null) throw new InvalidOperationException($"User with id {userContext.UserId} not found");
         var baseNotifications = new List<BaseNotification>();
         foreach (var taskUser in taskUsers)
         {
-            var user = await _context.Users.FirstAsync(u => u.Id == userContext.UserId);
             var baseNotification = await notificationRepository.AddAsync(new BaseNotification(
                 taskUser, "New Task Comment", user.FirstName + " " + user.LastName + ": "
                                               + taskComment.Text, NotificationType.General));
@@ -73,32 +72,32 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
 
     public async Task<(List<TaskComment> comments, int totalCount)> GetTaskCommentsAsync(
         int pageNumber, int pageSize, string sortOrder,
-        int taskId)
+        int taskId, bool ownedComments)
     {
         var query = _context.TaskComments.AsQueryable().AsNoTracking();
 
         //TODO: Add soft delete to global ef core options so you don't have to filter out these data each time
         query = query.Where(taskComment => taskComment.Deleted == false);
 
-        var task = _context.Tasks.FirstOrDefault(t => t.Id == taskId);
-        if (task == null) throw new Exception("Task does not exist.");
+        var task = _context.Tasks.Include(appTask => appTask.AssignedUsers).FirstOrDefault(t => t.Id == taskId);
+        if (task == null) throw new Exception($"Task does not exist with id {taskId}.");
 
-        var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskId).Select(tu => tu.UserId).ToList();
+        var taskUserIds = task.AssignedUsers.Select(u => u.Id).ToList();
 
-        taskUsers = taskUsers.Append(task.OwnerId).ToList();
+        taskUserIds = taskUserIds.Append(task.OwnerId).ToList();
 
-        var users = _context.Users.Where(u => taskUsers.Any(tu => tu == u.Id)).ToList();
-
-        if (taskUsers.All(tu => tu != userContext.UserId))
+        if (taskUserIds.All(tu => tu != userContext.UserId))
             throw new Exception("User does not have permission to access the task.");
 
 
         query = query.Where(taskComment => taskComment.TaskId == taskId);
 
+        if (ownedComments) query = query.Where(taskComment => taskComment.UserId == userContext.UserId);
+
         // Sorting by CreatedAt
         query = sortOrder.ToLower() == "desc"
-            ? query.OrderByDescending(task => task.CreatedAt)
-            : query.OrderBy(task => task.CreatedAt);
+            ? query.OrderByDescending(t => t.CreatedAt)
+            : query.OrderBy(t => t.CreatedAt);
 
         // Paging
         var totalCount = await query.CountAsync();
@@ -107,61 +106,16 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
             .Take(pageSize)
             .ToListAsync();
 
-        var commentNotifications = new List<CommentNotification>();
+        if (!ownedComments)
+            foreach (var taskComment in taskComments)
+            {
+                var notification =
+                    taskComment.Notifications.FirstOrDefault(n =>
+                        n.UserId == userContext.UserId && n is { IsRead: false, Deleted: false });
+                if (notification != null)
+                    await notificationRepository.DeleteAsync(notification);
+            }
 
-        foreach (var taskComment in taskComments)
-        {
-            var commentNotification =
-                await _context.CommentNotifications.FirstOrDefaultAsync(x => x.CommentId == taskComment.Id);
-            if (commentNotification != null &&
-                await _context.Notifications.AnyAsync(x =>
-                    x.Id == commentNotification.NotificationId && x.IsRead == false))
-                commentNotifications.Add(commentNotification);
-        }
-
-        foreach (var commentNotification in commentNotifications)
-        {
-            _context.Notifications.Remove(
-                await _context.Notifications.FirstAsync(x => x.Id == commentNotification.NotificationId));
-            _context.CommentNotifications.Remove(
-                await _context.CommentNotifications.FirstAsync(x => x.Id == commentNotification.Id));
-            await _context.SaveChangesAsync();
-        }
-
-        return (taskComments, totalCount);
-    }
-
-    public async Task<(List<TaskComment> comments, int totalCount)> GetTaskCommentsByTaskAndUserIdAsync(
-        int pageSize, int pageNumber, string sortOrder, int taskId)
-    {
-        var query = _context.TaskComments.AsQueryable();
-
-        query = query.Where(taskComment => taskComment.Deleted == false);
-
-        var taskUsers = _context.TaskUsers.Where(tu => tu.TaskId == taskId).Select(tu => tu.UserId).ToList();
-
-        var taskOwner = _context.Tasks.Where(t => t.Id == taskId).First();
-
-        taskUsers = taskUsers.Append(taskOwner.OwnerId).ToList();
-
-        if (!taskUsers.Any(tu => tu == userContext.UserId))
-            throw new Exception("User does not have permission to access the task.");
-
-        var user = _context.Users.First(u => u.Id == userContext.UserId);
-
-        query = query.Where(task => task.TaskId == taskId && task.UserId == userContext.UserId);
-
-        // Sorting by CreatedAt
-        query = sortOrder.ToLower() == "desc"
-            ? query.OrderByDescending(task => task.CreatedAt)
-            : query.OrderBy(task => task.CreatedAt);
-
-        // Paging
-        var totalCount = await query.CountAsync();
-        var taskComments = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
 
         return (taskComments, totalCount);
     }
