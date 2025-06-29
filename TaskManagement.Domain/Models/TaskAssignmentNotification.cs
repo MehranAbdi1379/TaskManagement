@@ -17,6 +17,9 @@ public class TaskAssignmentNotification : BaseEntity
     public bool Accepted { get; private set; }
     public int RequestId { get; private set; }
 
+    public BaseNotification Notification { get; set; }
+    public TaskAssignmentRequest Request { get; set; }
+
     public void SetAccepted(bool accepted)
     {
         Accepted = accepted;
