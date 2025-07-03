@@ -64,10 +64,10 @@ public class TaskService : ITaskService
             parameters.SortOrder);
         var mappedResults = mapper.Map<List<TaskResponseDto>>(tasks);
 
-        var mappedDict = mappedResults.ToDictionary(mr => mr.Id);
-
-        foreach (var task in tasks)
-            mappedDict[task.Id].IsOwner = task.OwnerId == userContext.UserId;
+        // var mappedDict = mappedResults.ToDictionary(mr => mr.Id);
+        //
+        // foreach (var task in tasks)
+        //     mappedDict[task.Id].IsOwner = task.OwnerId == userContext.UserId;
 
         return new PagedResult<TaskResponseDto>
         {
@@ -108,20 +108,19 @@ public class TaskService : ITaskService
         var task = await baseRepository.GetTaskByIdAsync(taskId);
 
         var assignee = await userManager.Users.FirstOrDefaultAsync(u => u.Email == assigneeEmail);
-        if (assignee == null) throw new Exception("User does not exist to assign.");
+        if (assignee == null) throw new Exception($"User with email {assigneeEmail} does not exist to assign.");
 
         if (await taskAssignmentRequestRepository.RequestAlreadyExists(assignee.Id, taskId))
             throw new Exception("This request already exists.");
 
         var taskUsers = task.AssignedUsers;
         if (assignee.Id == userContext.UserId || taskUsers.Any(x => x.Id == userContext.UserId))
-            throw new Exception("User already has the task.");
+            throw new Exception($"User with email {assigneeEmail} already has the task with id {taskId}.");
 
         var owner = await userManager.Users.FirstAsync(x => x.Id == userContext.UserId);
 
         var request = new TaskAssignmentRequest(userContext.UserId, assignee.Id, taskId);
 
-        await taskAssignmentRequestRepository.AddAsync(request);
 
         // Create a notification for the assignee
         var notification = await notificationService.CreateNotification(assignee.Id, "Task Assignment Request",
@@ -129,8 +128,8 @@ public class TaskService : ITaskService
             , NotificationType.TaskAssignmentRequest
         );
 
-        request.SetRequestNotificationId(notification.Id);
-        await taskAssignmentRequestRepository.UpdateAsync(request);
+        request.RequestNotification = notification;
+        await taskAssignmentRequestRepository.AddAsync(request);
 
         return notification;
     }
@@ -139,18 +138,15 @@ public class TaskService : ITaskService
     {
         var request =
             await taskAssignmentRequestRepository.GetTaskAssignmentRequestByNotificationIdAsync(notificationId);
-        if (request == null) throw new Exception("Task Assignment Request does not exist.");
 
         request.SetIsAccepted(accept);
         request.Delete();
 
-        await taskAssignmentRequestRepository.UpdateAsync(request);
-        var user = userManager.Users.First(u => u.Id == request.AssigneeId);
-        var task = await baseRepository.GetByIdAsync(request.TaskId);
+        var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == request.AssigneeId);
+        if (user == null) throw new Exception($"User with email {request.AssigneeId} does not exist to assign.");
 
-        var notification = await notificationRepository.GetByIdAsync(request.RequestNotificationId);
-        notification.ReadNotification();
-        await notificationRepository.UpdateAsync(notification);
+        request.RequestNotification.ReadNotification();
+        await taskAssignmentRequestRepository.UpdateAsync(request);
 
         if (accept)
         {
@@ -160,7 +156,7 @@ public class TaskService : ITaskService
             return await notificationService.CreateNotification(
                 request.TaskOwnerId, "Task Assignment Accepted",
                 $"User ({user.FirstName + " " + user.LastName}) has accepted your task invitation for task" +
-                $"(Title: {task.Title}, Description: {task.Description})."
+                $" (Title: {request.Task.Title}, Description: {request.Task.Description})."
                 , NotificationType.General
             );
         }
@@ -168,7 +164,7 @@ public class TaskService : ITaskService
         return await notificationService.CreateNotification(
             request.TaskOwnerId, "Task Assignment Rejected",
             $"User {user.FirstName + " " + user.LastName} has rejected your task invitation." +
-            $"(Title: {task.Title}, Description: {task.Description})."
+            $" (Title: {request.Task.Title}, Description: {request.Task.Description})."
             , NotificationType.General
         );
     }

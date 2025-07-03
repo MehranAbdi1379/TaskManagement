@@ -58,15 +58,12 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
     public async Task<AppTask> GetTaskByIdAsync(int id)
     {
         var task = await _context.Tasks.AsNoTracking().Where(task => task.Id == id && task.Deleted == false)
-            .Select(t => new
-            {
-                Task = t, t.AssignedUsers
-            }).FirstOrDefaultAsync();
+            .Include(t => t.AssignedUsers).FirstOrDefaultAsync();
         if (task == null) throw new Exception($"Task not found with id {id}");
 
-        if (task.AssignedUsers.All(tu => tu.Id != userContext.UserId) && userContext.UserId != task.Task.OwnerId)
+        if (task.AssignedUsers.All(tu => tu.Id != userContext.UserId) && userContext.UserId != task.OwnerId)
             throw new Exception("Task does not belong to the user.");
-        return task.Task;
+        return task;
     }
 
     public async Task DeleteTaskAsync(int id)

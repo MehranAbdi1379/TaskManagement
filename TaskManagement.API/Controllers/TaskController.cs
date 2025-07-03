@@ -1,179 +1,157 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using TaskManagement.API.Hubs;
 using TaskManagement.API.Services;
-using TaskManagement.Service.Services;
 using TaskManagement.Shared.DTOs.Notification;
 using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.DTOs.TaskComment;
 using TaskManagement.Shared.ServiceInterfaces;
 
-namespace TaskManagement.API.Controllers
+namespace TaskManagement.API.Controllers;
+
+[Route("api/[controller]")]
+[Authorize]
+[ApiController]
+public class TaskController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [Authorize]
-    [ApiController]
-    public class TaskController : ControllerBase
+    private readonly IMapper mapper;
+    private readonly IHubContext<NotificationHub> notificationHub;
+    private readonly ITaskCommentService taskCommentService;
+    private readonly TaskGroupTracker taskGroupTracker;
+    private readonly ITaskService taskService;
+
+    public TaskController(ITaskService taskService, ITaskCommentService taskCommentService,
+        IHubContext<NotificationHub> notificationHub
+        , TaskGroupTracker taskGroupTracker, IMapper mapper)
     {
-        protected readonly ITaskService taskService;
-        protected readonly ITaskCommentService taskCommentService;
-        protected readonly IHubContext<NotificationHub> notificationHub;
-        protected readonly TaskGroupTracker taskGroupTracker;
-        public TaskController(ITaskService taskService, ITaskCommentService taskCommentService, IHubContext<NotificationHub> notificationHub
-        , TaskGroupTracker taskGroupTracker)
-        {
-            this.taskService = taskService;
-            this.taskCommentService = taskCommentService;
-            this.notificationHub = notificationHub;
-            this.taskGroupTracker = taskGroupTracker;
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetAllTasksAsync([FromQuery] TaskQueryParameters parameters)
-        {
-            var tasks = await taskService.GetAllTasksAsync(parameters);
-            return Ok(tasks);
-        }
+        this.taskService = taskService;
+        this.taskCommentService = taskCommentService;
+        this.notificationHub = notificationHub;
+        this.taskGroupTracker = taskGroupTracker;
+        this.mapper = mapper;
+    }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetTaskByIdAsync(int id)
-        {
-            var task = await taskService.GetTaskByIdAsync(id);
-            return Ok(task);
-        }
+    [HttpGet]
+    public async Task<IActionResult> GetAllTasksAsync([FromQuery] TaskQueryParameters parameters)
+    {
+        var tasks = await taskService.GetAllTasksAsync(parameters);
+        return Ok(tasks);
+    }
 
-        [HttpPost]
-        public async Task<IActionResult> AddTaskAsync(CreateTaskDto dto)
-        {
-            var task = await taskService.CreateTaskAsync(dto);
-            return Ok(task);
-        }
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetTaskByIdAsync(int id)
+    {
+        var task = await taskService.GetTaskByIdAsync(id);
+        return Ok(task);
+    }
 
-        [HttpPatch]
-        public async Task<IActionResult> UpdateTaskStateAsync(UpdateTaskStatusDto dto)
-        {
-            return Ok(await taskService.UpdateTaskStatusAsync(dto));
-        }
+    [HttpPost]
+    public async Task<IActionResult> AddTaskAsync(CreateTaskDto dto)
+    {
+        var task = await taskService.CreateTaskAsync(dto);
+        return Ok(task);
+    }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateTaskAsync(UpdateTaskDto dto)
-        {
-            var task = await taskService.UpdateTaskAsync(dto);
-            return Ok(task);
-        }
+    [HttpPatch]
+    public async Task<IActionResult> UpdateTaskStateAsync(UpdateTaskStatusDto dto)
+    {
+        return Ok(await taskService.UpdateTaskStatusAsync(dto));
+    }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTaskAsync(int id)
-        {
-            await taskService.DeleteTaskByIdAsync(id);
-            return Ok("Task is deleted.");
-        }
+    [HttpPut]
+    public async Task<IActionResult> UpdateTaskAsync(UpdateTaskDto dto)
+    {
+        var task = await taskService.UpdateTaskAsync(dto);
+        return Ok(task);
+    }
 
-        [HttpGet("{id}/comment")]
-        public async Task<IActionResult> GetTaskCommentsAsync([FromQuery] TaskCommentQueryParameters parameters, int id)
-        {
-            var taskComments = await taskCommentService.GetTaskCommentsByTaskIdAsync(parameters, id);
-            return Ok(taskComments);
-        }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTaskAsync(int id)
+    {
+        await taskService.DeleteTaskByIdAsync(id);
+        return Ok("Task is deleted.");
+    }
 
-        [HttpPost("{id}/comment")]
-        public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
-        {
-            var (taskComment,baseNotifications) = await taskCommentService.CreateTaskCommentAsync(dto, id,taskGroupTracker.TaskUserGroups);
-            var tempIsOwner = taskComment.IsOwner;
-            taskComment.IsOwner = false;
-            await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
-            taskComment.IsOwner = tempIsOwner;
-            foreach (var notification in baseNotifications)
-            {
-                var notificationResponseDto = new NotificationResponseDto()
-                {
-                    Content = notification.Content,
-                    Id = notification.Id,
-                    IsRead = notification.IsRead,
-                    Title = notification.Title,
-                    Type = notification.Type.ToString(),
-                    UserId = notification.UserId
-                };
+    [HttpGet("{id}/comment")]
+    public async Task<IActionResult> GetTaskCommentsAsync([FromQuery] TaskCommentQueryParameters parameters, int id)
+    {
+        var taskComments = await taskCommentService.GetTaskCommentsByTaskIdAsync(parameters, id);
+        return Ok(taskComments);
+    }
 
-                await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", notificationResponseDto);
-            }
-            return Ok(taskComment);
+    [HttpPost("{id}/comment")]
+    public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
+    {
+        var (taskComment, baseNotifications) =
+            await taskCommentService.CreateTaskCommentAsync(dto, id, taskGroupTracker.TaskUserGroups);
+        var tempIsOwner = taskComment.IsOwner;
+        taskComment.IsOwner = false;
+        await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
+        taskComment.IsOwner = tempIsOwner;
+        foreach (var notification in baseNotifications)
+        {
+            var notificationResponseDto = mapper.Map<NotificationResponseDto>(notification);
+            notificationResponseDto.Type = notification.Type.ToString();
+
+            await notificationHub.Clients.User(notification.UserId.ToString())
+                .SendAsync("ReceiveNotification", notificationResponseDto);
         }
 
-        [HttpDelete("{id}/comment/{taskCommentId}")]
-        public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
-        {
-            var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
-            await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("DeleteTaskComment", taskComment.Id);
-            return Ok("Task comment is deleted.");
-        }
+        return Ok(taskComment);
+    }
 
-        [HttpPost("assign")]
-        public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
-        {
-            var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
-            
-            var dto = new NotificationResponseDto()
-            {
-                Content = notification.Content,
-                Id = notification.Id,
-                IsRead = notification.IsRead,
-                Title = notification.Title,
-                Type = notification.Type.ToString(),
-                UserId = notification.UserId
-            };
+    [HttpDelete("{id}/comment/{taskCommentId}")]
+    public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
+    {
+        var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
+        await notificationHub.Clients.Group($"Task-{taskComment.TaskId}")
+            .SendAsync("DeleteTaskComment", taskComment.Id);
+        return Ok("Task comment is deleted.");
+    }
 
-            await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
-            
-            return Ok("Task invitation sent.");
-        }
+    [HttpPost("assign")]
+    public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
+    {
+        var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
 
-        [HttpPost("respond")]
-        public async Task<IActionResult> RespondToAssignment([FromBody] TaskAssignmentResponseDto request)
-        {
-            var notification = await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
-            
-            var dto = new NotificationResponseDto()
-            {
-                Content = notification.Content,
-                Id = notification.Id,
-                IsRead = notification.IsRead,
-                Title = notification.Title,
-                Type = notification.Type.ToString(),
-                UserId = notification.UserId
-            };
+        var dto = mapper.Map<NotificationResponseDto>(notification);
 
-            await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
-            
-            return Ok("Response recorded.");
-        }
+        await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
 
-        [HttpGet("{id}/assigned-users")]
-        public async Task<IActionResult> GetAssignedUsers(int id)
-        {
-            var result = await taskService.GetTaskAssignedUsers(id);
-            return Ok(result);
-        }
+        return Ok("Task invitation sent.");
+    }
 
-        [HttpDelete("{id}/unassign-user/{userId}")]
-        public async Task<IActionResult> UnassignUserFromTask(int id,  int userId)
-        {
-            var notification = await taskService.UnassignTaskAsync(id, userId);
-            
-            var dto = new NotificationResponseDto()
-            {
-                Content = notification.Content,
-                Id = notification.Id,
-                IsRead = notification.IsRead,
-                Title = notification.Title,
-                Type = notification.Type.ToString(),
-                UserId = notification.UserId
-            };
+    [HttpPost("respond")]
+    public async Task<IActionResult> RespondToAssignment([FromBody] TaskAssignmentResponseDto request)
+    {
+        var notification =
+            await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
 
-            await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
-            
-            return Ok($"User with id {userId} has been unassigned from the task {id}.");
-        }
+        var dto = mapper.Map<TaskAssignmentResponseDto>(notification);
+
+        await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
+
+        return Ok("Response recorded.");
+    }
+
+    [HttpGet("{id}/assigned-users")]
+    public async Task<IActionResult> GetAssignedUsers(int id)
+    {
+        var result = await taskService.GetTaskAssignedUsers(id);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}/unassign-user/{userId}")]
+    public async Task<IActionResult> UnassignUserFromTask(int id, int userId)
+    {
+        var notification = await taskService.UnassignTaskAsync(id, userId);
+
+        var dto = mapper.Map<NotificationResponseDto>(notification);
+
+        await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
+
+        return Ok($"User with id {userId} has been unassigned from the task {id}.");
     }
 }
