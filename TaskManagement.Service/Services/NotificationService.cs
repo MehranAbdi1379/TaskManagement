@@ -30,49 +30,33 @@ public class NotificationService : INotificationService
         return await baseRepository.AddAsync(notification);
     }
 
-    public async Task<PagedResult<NotificationResponseDto>> GetUserNotificationsAsync(
-        NotificationQueryParameters parameters)
-    {
-        var (notifications, totalCount) =
-            await baseRepository.GetActiveNotificationsByUserId(parameters.PageNumber, parameters.PageSize,
-                parameters.SortOrder);
-
-        var mappedResult = mapper.Map<List<NotificationResponseDto>>(notifications);
-
-        return new PagedResult<NotificationResponseDto>
-        {
-            Items = mappedResult,
-            TotalCount = totalCount,
-            PageNumber = parameters.PageNumber,
-            PageSize = parameters.PageSize
-        };
-    }
-
-    public async Task<PagedResult<NotificationResponseDto>> GetNotificationHistoryAsync(
-        NotificationQueryParameters parameters)
-    {
-        var (notifications, totalCount) =
-            await baseRepository.GetNotificationHistoryByUserId(parameters.PageSize, parameters.PageNumber,
-                parameters.SortOrder);
-
-        var mappedResult = mapper.Map<List<NotificationResponseDto>>(notifications);
-
-        return new PagedResult<NotificationResponseDto>
-        {
-            Items = mappedResult,
-            TotalCount = totalCount,
-            PageNumber = parameters.PageNumber,
-            PageSize = parameters.PageSize
-        };
-    }
-
     public async Task UpdateNotificationIsReadAsync(int notificationId)
     {
         var notification = await baseRepository.GetByIdAsync(notificationId);
-        if (notification.UserId != userContext.UserId) throw new Exception("Notification does not belong to the user.");
+        if (notification.UserId != userContext.UserId)
+            throw new Exception(
+                $"Notification with id {notificationId} does not belong to the user with id {userContext.UserId}.");
 
         notification.ReadNotification();
 
         await baseRepository.UpdateAsync(notification);
+    }
+
+    public async Task<PagedResult<NotificationResponseDto>> GetUserNotificationsAsync(
+        NotificationQueryParameters parameters, bool history)
+    {
+        var (notifications, totalCount) =
+            await baseRepository.GetNotificationsByUserId(parameters.PageNumber, parameters.PageSize,
+                parameters.SortOrder, history);
+
+        var mappedResult = mapper.Map<List<NotificationResponseDto>>(notifications);
+
+        return new PagedResult<NotificationResponseDto>
+        {
+            Items = mappedResult,
+            TotalCount = totalCount,
+            PageNumber = parameters.PageNumber,
+            PageSize = parameters.PageSize
+        };
     }
 }

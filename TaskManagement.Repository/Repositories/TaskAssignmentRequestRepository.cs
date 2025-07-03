@@ -17,7 +17,10 @@ public class TaskAssignmentRequestRepository : BaseRepository<TaskAssignmentRequ
     public async Task<TaskAssignmentRequest> GetTaskAssignmentRequestByNotificationIdAsync(int notificationId)
     {
         var taskAssignmentRequest =
-            await _dbSet.FirstOrDefaultAsync(x => x.RequestNotificationId == notificationId && x.Deleted == false);
+            await _dbSet
+                .Include(t => t.RequestNotification)
+                .Include(t => t.Task)
+                .FirstOrDefaultAsync(x => x.RequestNotificationId == notificationId && x.Deleted == false);
         if (taskAssignmentRequest == null)
             throw new InvalidOperationException(
                 $"TaskAssignmentRequest for notification with id {notificationId} not found");

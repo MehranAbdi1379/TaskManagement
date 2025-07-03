@@ -37,6 +37,7 @@ public class TaskCommentService : ITaskCommentService
         await baseRepository.UpdateAsync(taskComment);
 
         var result = mapper.Map<TaskCommentResponseDto>(taskComment);
+
         var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
         if (user == null) throw new Exception($"User not found with id {userContext.UserId}");
 

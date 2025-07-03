@@ -8,6 +8,8 @@ public class NotificationProfile : Profile
 {
     public NotificationProfile()
     {
-        CreateMap<BaseNotification, NotificationResponseDto>();
+        CreateMap<BaseNotification, NotificationResponseDto>()
+            .ForMember(dest => dest.Type, opt =>
+                opt.MapFrom(src => src.Type.ToString()));
     }
 }

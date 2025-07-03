@@ -39,6 +39,8 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
         if (taskUsers.All(tu => tu != userContext.UserId))
             throw new Exception("User does not have permission to access the task.");
 
+        taskUsers.Remove(userContext.UserId);
+
         await AddAsync(taskComment);
 
         foreach (var taskUserGroup in taskUserGroups)
@@ -67,6 +69,7 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
             baseNotifications.Add(baseNotification);
         }
 
+        await _dbSet.Entry(taskComment).Collection(d => d.Notifications).LoadAsync();
         return (taskComment, baseNotifications);
     }
 
@@ -74,7 +77,8 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
         int pageNumber, int pageSize, string sortOrder,
         int taskId, bool ownedComments)
     {
-        var query = _context.TaskComments.AsQueryable().AsNoTracking();
+        var query = _context.TaskComments
+            .Include(t => t.Notifications).AsQueryable().AsNoTracking();
 
         //TODO: Add soft delete to global ef core options so you don't have to filter out these data each time
         query = query.Where(taskComment => taskComment.Deleted == false);
