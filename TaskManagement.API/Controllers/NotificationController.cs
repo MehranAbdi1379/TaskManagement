@@ -1,40 +1,32 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using TaskManagement.Service.Services;
 using TaskManagement.Shared.DTOs.Notification;
 using TaskManagement.Shared.ServiceInterfaces;
 
-namespace TaskManagement.API.Controllers
+namespace TaskManagement.API.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class NotificationController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
-    public class NotificationController : ControllerBase
+    protected readonly INotificationService notificationService;
+
+    public NotificationController(INotificationService notificationService)
     {
-        protected readonly INotificationService notificationService;
-        public NotificationController(INotificationService notificationService)
-        {
-            this.notificationService = notificationService;
-        }
+        this.notificationService = notificationService;
+    }
 
-        [HttpGet("active")]
-        public async Task<IActionResult> GetUserActiveNotifications([FromQuery] NotificationQueryParameters parameters)
-        {
-            return Ok(await notificationService.GetUserNotificationsAsync(parameters));
-        }
+    [HttpGet]
+    public async Task<IActionResult> GetUserActiveNotifications([FromQuery] NotificationQueryParameters parameters)
+    {
+        return Ok(await notificationService.GetUserNotificationsAsync(parameters, parameters.History));
+    }
 
-        [HttpGet("history")]
-        public async Task<IActionResult> GetUserNotificationHistory([FromQuery] NotificationQueryParameters parameters)
-        {
-            return Ok(await notificationService.GetNotificationHistoryAsync(parameters));
-        }
-
-        [HttpPatch]
-        public async Task<IActionResult> UpdateNotificationIsRead([FromBody] int notificationId)
-        {
-            await notificationService.UpdateNotificationIsReadAsync(notificationId);
-            return Ok("Notification is updated.");
-        }
+    [HttpPatch]
+    public async Task<IActionResult> UpdateNotificationIsRead([FromBody] int notificationId)
+    {
+        await notificationService.UpdateNotificationIsReadAsync(notificationId);
+        return Ok("Notification is updated.");
     }
 }

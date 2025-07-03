@@ -54,6 +54,7 @@ public class BaseNotification : BaseEntity
 
     public void ReadNotification()
     {
+        if (IsRead) throw new DomainException($"Notification with id {Id} is already read.");
         IsRead = true;
     }
 }
