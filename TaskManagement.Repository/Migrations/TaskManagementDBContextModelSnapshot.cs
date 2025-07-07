@@ -34,7 +34,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AppTaskAssignment");
+                    b.ToTable("AppTaskAssignment", (string)null);
                 });
 
             modelBuilder.Entity("BaseNotificationTaskComment", b =>
@@ -49,7 +49,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("TaskCommentsId");
 
-                    b.ToTable("BaseNotificationTaskComment");
+                    b.ToTable("BaseNotificationTaskComment", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -189,7 +189,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Tasks");
+                    b.ToTable("Tasks", (string)null);
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.ApplicationRole", b =>
@@ -336,7 +336,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskAssignmentRequest", b =>
@@ -381,7 +381,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("TaskOwnerId");
 
-                    b.ToTable("TaskAssignmentRequests");
+                    b.ToTable("TaskAssignmentRequests", (string)null);
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskComment", b =>
@@ -417,7 +417,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TaskComments");
+                    b.ToTable("TaskComments", (string)null);
                 });
 
             modelBuilder.Entity("AppTaskAssignment", b =>

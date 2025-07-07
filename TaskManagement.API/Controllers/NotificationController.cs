@@ -5,7 +5,7 @@ using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/notifications")]
 [ApiController]
 [Authorize]
 public class NotificationController : ControllerBase

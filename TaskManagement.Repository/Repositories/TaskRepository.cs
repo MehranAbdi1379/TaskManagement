@@ -93,4 +93,13 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
         task.AssignedUsers.Remove(taskUser);
         await _context.SaveChangesAsync();
     }
+
+    public async Task AssignTaskAsync(int taskId, ApplicationUser user)
+    {
+        var task = await _dbSet.FirstOrDefaultAsync(x => x.Id == taskId && x.Deleted == false);
+        if (task == null) throw new Exception($"Task does not exist with id {taskId}.");
+        if (user.AssignedTasks == null) user.AssignedTasks = new List<AppTask>();
+        user.AssignedTasks.Add(task);
+        await _context.SaveChangesAsync();
+    }
 }

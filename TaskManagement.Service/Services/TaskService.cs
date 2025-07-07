@@ -188,10 +188,8 @@ public class TaskService : ITaskService
 
     private async Task AssignTaskToUserAsync(int taskId)
     {
-        var user = await userManager.Users.FirstAsync(u => u.Id == userContext.UserId);
-        if (user == null) throw new Exception("User does not exist to assign to task.");
-        var task = await baseRepository.GetTaskByIdAsync(taskId);
-        task.AssignedUsers.Add(user);
-        await baseRepository.UpdateAsync(task);
+        var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
+        if (user == null) throw new Exception($"User with id {userContext.UserId} does not exist to assign.");
+        await baseRepository.AssignTaskAsync(taskId, user);
     }
 }

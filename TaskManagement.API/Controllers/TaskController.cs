@@ -11,7 +11,7 @@ using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/tasks")]
 [Authorize]
 [ApiController]
 public class TaskController : ControllerBase
@@ -129,7 +129,7 @@ public class TaskController : ControllerBase
         var notification =
             await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
 
-        var dto = mapper.Map<TaskAssignmentResponseDto>(notification);
+        var dto = mapper.Map<NotificationResponseDto>(notification);
 
         await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
 
