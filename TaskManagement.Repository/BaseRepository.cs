@@ -25,7 +25,7 @@ public class BaseRepository<T> : IBaseRepository<T> where T : BaseEntity
     public async Task<T> GetByIdAsync(int id)
     {
         var entity = await _dbSet.Where(x => x.Id == id && x.Deleted == false).FirstOrDefaultAsync();
-        if (entity == null) throw new NullReferenceException($"Entity of type {typeof(T)} with id {id} not found");
+        if (entity == null) throw new NullReferenceException($"Entity of type {typeof(T).Name} with id {id} not found");
         return entity;
     }
 

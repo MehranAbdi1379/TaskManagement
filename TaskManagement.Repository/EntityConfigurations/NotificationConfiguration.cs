@@ -17,5 +17,9 @@ public class NotificationConfiguration : IEntityTypeConfiguration<BaseNotificati
             .WithMany()
             .HasForeignKey(r => r.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+        builder
+            .HasOne(n => n.User)
+            .WithMany(u => u.Notifications)
+            .HasForeignKey(n => n.UserId);
     }
 }
