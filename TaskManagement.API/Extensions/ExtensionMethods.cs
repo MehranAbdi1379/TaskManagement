@@ -88,7 +88,7 @@ public static class ExtensionMethods
             .AddDefaultTokenProviders();
 
 // Configure JWT Authentication
-        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+        var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? string.Empty);
         builder.Services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

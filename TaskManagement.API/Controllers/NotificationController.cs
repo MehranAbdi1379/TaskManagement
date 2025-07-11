@@ -10,7 +10,7 @@ namespace TaskManagement.API.Controllers;
 [Authorize]
 public class NotificationController : ControllerBase
 {
-    protected readonly INotificationService notificationService;
+    private readonly INotificationService notificationService;
 
     public NotificationController(INotificationService notificationService)
     {
@@ -23,8 +23,8 @@ public class NotificationController : ControllerBase
         return Ok(await notificationService.GetUserNotificationsAsync(parameters, parameters.History));
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> UpdateNotificationIsRead([FromBody] int notificationId)
+    [HttpPatch("{notificationId:int}")]
+    public async Task<IActionResult> UpdateNotificationIsRead(int notificationId)
     {
         await notificationService.UpdateNotificationIsReadAsync(notificationId);
         return Ok("Notification is updated.");

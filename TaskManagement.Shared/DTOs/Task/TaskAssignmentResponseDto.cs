@@ -8,7 +8,6 @@ namespace TaskManagement.Shared.DTOs.Task
 {
     public class TaskAssignmentResponseDto
     {
-        public int RequestNotificationId { get; set; }
         public bool Accept { get; set; }
     }
 }

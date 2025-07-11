@@ -40,10 +40,10 @@ public class TaskController : ControllerBase
         return Ok(tasks);
     }
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetTaskByIdAsync(int id)
+    [HttpGet("{taskId:int}")]
+    public async Task<IActionResult> GetTaskByIdAsync(int taskId)
     {
-        var task = await taskService.GetTaskByIdAsync(id);
+        var task = await taskService.GetTaskByIdAsync(taskId);
         return Ok(task);
     }
 
@@ -54,38 +54,38 @@ public class TaskController : ControllerBase
         return Ok(task);
     }
 
-    [HttpPatch]
-    public async Task<IActionResult> UpdateTaskStateAsync(UpdateTaskStatusDto dto)
+    [HttpPatch("{taskId:int}")]
+    public async Task<IActionResult> UpdateTaskStateAsync(UpdateTaskStatusDto dto, int taskId)
     {
-        return Ok(await taskService.UpdateTaskStatusAsync(dto));
+        return Ok(await taskService.UpdateTaskStatusAsync(dto, taskId));
     }
 
-    [HttpPut]
-    public async Task<IActionResult> UpdateTaskAsync(UpdateTaskDto dto)
+    [HttpPut("{taskId:int}")]
+    public async Task<IActionResult> UpdateTaskAsync(int taskId, UpdateTaskDto dto)
     {
-        var task = await taskService.UpdateTaskAsync(dto);
+        var task = await taskService.UpdateTaskAsync(dto, taskId);
         return Ok(task);
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteTaskAsync(int id)
+    [HttpDelete("{taskId:int}")]
+    public async Task<IActionResult> DeleteTaskAsync(int taskId)
     {
-        await taskService.DeleteTaskByIdAsync(id);
+        await taskService.DeleteTaskByIdAsync(taskId);
         return Ok("Task is deleted.");
     }
 
-    [HttpGet("{id}/comment")]
-    public async Task<IActionResult> GetTaskCommentsAsync([FromQuery] TaskCommentQueryParameters parameters, int id)
+    [HttpGet("{taskId:int}/comments")]
+    public async Task<IActionResult> GetTaskCommentsAsync([FromQuery] TaskCommentQueryParameters parameters, int taskId)
     {
-        var taskComments = await taskCommentService.GetTaskCommentsByTaskIdAsync(parameters, id);
+        var taskComments = await taskCommentService.GetTaskCommentsByTaskIdAsync(parameters, taskId);
         return Ok(taskComments);
     }
 
-    [HttpPost("{id}/comment")]
-    public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int id)
+    [HttpPost("{taskId:int}/comments")]
+    public async Task<IActionResult> AddTaskCommentAsync(CreateTaskCommentDto dto, int taskId)
     {
         var (taskComment, baseNotifications) =
-            await taskCommentService.CreateTaskCommentAsync(dto, id, taskGroupTracker.TaskUserGroups);
+            await taskCommentService.CreateTaskCommentAsync(dto, taskId, taskGroupTracker.TaskUserGroups);
         var tempIsOwner = taskComment.IsOwner;
         taskComment.IsOwner = false;
         await notificationHub.Clients.Group($"Task-{taskComment.TaskId}").SendAsync("ReceiveTaskComment", taskComment);
@@ -102,17 +102,17 @@ public class TaskController : ControllerBase
         return Ok(taskComment);
     }
 
-    [HttpDelete("{id}/comment/{taskCommentId}")]
-    public async Task<IActionResult> DeleteTaskCommentAsync(int taskCommentId)
+    [HttpDelete("{taskId:int}/comments/{commentId:int}")]
+    public async Task<IActionResult> DeleteTaskCommentAsync(int commentId, int taskId)
     {
-        var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(taskCommentId);
+        var taskComment = await taskCommentService.DeleteTaskCommentByIdAsync(commentId);
         await notificationHub.Clients.Group($"Task-{taskComment.TaskId}")
             .SendAsync("DeleteTaskComment", taskComment.Id);
         return Ok("Task comment is deleted.");
     }
 
-    [HttpPost("assign")]
-    public async Task<IActionResult> AssignUserToTask([FromBody] TaskAssignmentRequestDto request)
+    [HttpPost("{taskId:int}/assignees")]
+    public async Task<IActionResult> AssignUserToTask(int taskId, [FromBody] TaskAssignmentRequestDto request)
     {
         var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
 
@@ -123,11 +123,12 @@ public class TaskController : ControllerBase
         return Ok("Task invitation sent.");
     }
 
-    [HttpPost("respond")]
-    public async Task<IActionResult> RespondToAssignment([FromBody] TaskAssignmentResponseDto request)
+    [HttpPost("{taskId:int}/assignees/{requestNotificationId:int}")]
+    public async Task<IActionResult> RespondToAssignment(int taskId, int requestNotificationId,
+        [FromBody] TaskAssignmentResponseDto request)
     {
         var notification =
-            await taskService.RespondToTaskAssignmentAsync(request.RequestNotificationId, request.Accept);
+            await taskService.RespondToTaskAssignmentAsync(requestNotificationId, request.Accept);
 
         var dto = mapper.Map<NotificationResponseDto>(notification);
 
@@ -136,22 +137,22 @@ public class TaskController : ControllerBase
         return Ok("Response recorded.");
     }
 
-    [HttpGet("{id}/assigned-users")]
-    public async Task<IActionResult> GetAssignedUsers(int id)
+    [HttpGet("{taskId:int}/assignees")]
+    public async Task<IActionResult> GetAssignedUsers(int taskId)
     {
-        var result = await taskService.GetTaskAssignedUsers(id);
+        var result = await taskService.GetTaskAssignedUsers(taskId);
         return Ok(result);
     }
 
-    [HttpDelete("{id}/unassign-user/{userId}")]
-    public async Task<IActionResult> UnassignUserFromTask(int id, int userId)
+    [HttpDelete("{taskId:int}/assignees/{userId:int}")]
+    public async Task<IActionResult> UnassignUserFromTask(int taskId, int userId)
     {
-        var notification = await taskService.UnassignTaskAsync(id, userId);
+        var notification = await taskService.UnassignTaskAsync(taskId, userId);
 
         var dto = mapper.Map<NotificationResponseDto>(notification);
 
         await notificationHub.Clients.User(notification.UserId.ToString()).SendAsync("ReceiveNotification", dto);
 
-        return Ok($"User with id {userId} has been unassigned from the task {id}.");
+        return Ok($"User with id {userId} has been unassigned from the task {taskId}.");
     }
 }

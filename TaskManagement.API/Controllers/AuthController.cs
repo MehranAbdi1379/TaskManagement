@@ -7,7 +7,7 @@ using TaskManagement.Shared.ServiceInterfaces;
 
 namespace TaskManagement.API.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -20,7 +20,7 @@ public class AuthController : ControllerBase
         _jwtService = jwtService;
     }
 
-    [HttpPost("register")]
+    [HttpPost("users")]
     public async Task<IActionResult> Register([FromBody] RegisterDto model)
     {
         var user = new ApplicationUser { UserName = model.Username, Email = model.Username };
@@ -46,7 +46,7 @@ public class AuthController : ControllerBase
         return Ok("User created successfully!");
     }
 
-    [HttpPost("login")]
+    [HttpPost("sessions")]
     public async Task<IActionResult> Login([FromBody] LoginDto model)
     {
         var user = await _userManager.FindByNameAsync(model.Username);
@@ -68,7 +68,7 @@ public class AuthController : ControllerBase
         return Ok("Login successful");
     }
 
-    [HttpPost("logout")]
+    [HttpDelete("sessions")]
     public IActionResult Logout()
     {
         Response.Cookies.Append("jwt", "", new CookieOptions
@@ -81,29 +81,25 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Logged out successfully" });
     }
 
-    [HttpGet("status")]
+    [HttpGet("sessions/status")]
     public IActionResult GetAuthStatus()
     {
-        // Check if the user is authenticated
-        if (User.Identity.IsAuthenticated)
-            // Return a response indicating that the user is authenticated
-            return Ok(new { isAuthenticated = true });
-
-        // Return a response indicating that the user is not authenticated
-        return Ok(new { isAuthenticated = false });
+        return Ok(User.Identity is { IsAuthenticated: true }
+            ? new { isAuthenticated = true }
+            : new { isAuthenticated = false });
     }
 
-    [HttpGet("get-user-id")]
+    [HttpGet("me")]
     public IActionResult GetUserId()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value; // Standard Claim "nameid"
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null) return Unauthorized("User ID not found in token.");
 
         return Ok(new { UserId = userId });
     }
 
 
-    [HttpPost("generateToken")]
+    [HttpPost("tokens")]
     public async Task<IActionResult> GenerateToken([FromBody] LoginDto model)
     {
         var user = await _userManager.FindByNameAsync(model.Username);
