@@ -44,9 +44,9 @@ public class TaskService : ITaskService
         return mapper.Map<TaskResponseDto>(task);
     }
 
-    public async Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto)
+    public async Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto, int taskId)
     {
-        var task = await baseRepository.GetTaskByIdAsync(dto.Id);
+        var task = await baseRepository.GetTaskByIdAsync(taskId);
         task.SetStatus(dto.Status);
         task.SetTitle(dto.Title);
         task.SetDescription(dto.Description);
@@ -64,10 +64,10 @@ public class TaskService : ITaskService
             parameters.SortOrder);
         var mappedResults = mapper.Map<List<TaskResponseDto>>(tasks);
 
-        // var mappedDict = mappedResults.ToDictionary(mr => mr.Id);
-        //
-        // foreach (var task in tasks)
-        //     mappedDict[task.Id].IsOwner = task.OwnerId == userContext.UserId;
+        var mappedDict = mappedResults.ToDictionary(mr => mr.Id);
+
+        foreach (var task in tasks)
+            mappedDict[task.Id].IsOwner = task.OwnerId == userContext.UserId;
 
         return new PagedResult<TaskResponseDto>
         {
@@ -91,9 +91,9 @@ public class TaskService : ITaskService
         await baseRepository.DeleteTaskAsync(id);
     }
 
-    public async Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto)
+    public async Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto, int taskId)
     {
-        var task = await baseRepository.GetTaskByIdAsync(dto.Id);
+        var task = await baseRepository.GetTaskByIdAsync(taskId);
         task.SetStatus(dto.Status);
         task.UpdateUpdatedAt();
         await baseRepository.UpdateAsync(task);
@@ -188,7 +188,9 @@ public class TaskService : ITaskService
 
     private async Task AssignTaskToUserAsync(int taskId)
     {
-        var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == userContext.UserId);
+        var user = await userManager.Users
+            .Include(u => u.AssignedTasks)
+            .FirstOrDefaultAsync(u => u.Id == userContext.UserId);
         if (user == null) throw new Exception($"User with id {userContext.UserId} does not exist to assign.");
         await baseRepository.AssignTaskAsync(taskId, user);
     }

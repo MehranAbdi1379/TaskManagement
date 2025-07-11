@@ -91,6 +91,7 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
         var taskUser = task.AssignedUsers.FirstOrDefault(u => u.Id == userId);
         if (taskUser == null) throw new Exception("User is not assigned to task.");
         task.AssignedUsers.Remove(taskUser);
+        _context.Update(task);
         await _context.SaveChangesAsync();
     }
 
