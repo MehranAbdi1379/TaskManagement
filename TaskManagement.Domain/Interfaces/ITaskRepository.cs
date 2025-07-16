@@ -11,7 +11,4 @@ public interface ITaskRepository : IBaseRepository<AppTask>
     Task<AppTask> GetTaskByIdAsync(int id);
     Task DeleteTaskAsync(int id);
     Task<List<ApplicationUser>> GetTaskAssignedUsersAsync(int taskId);
-
-    Task UnassignTaskAsync(int taskId, int userId);
-    Task AssignTaskAsync(int taskId, ApplicationUser user);
 }

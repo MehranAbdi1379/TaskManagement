@@ -22,7 +22,6 @@ public class AppTask : BaseEntity
     public int OwnerId { get; private set; }
 
     public ApplicationUser Owner { get; set; }
-    public ICollection<ApplicationUser> AssignedUsers { get; set; }
     public ICollection<TaskComment> Comments { get; set; }
     public ICollection<TaskAssignmentRequest> TaskAssignmentRequests { get; set; }
 

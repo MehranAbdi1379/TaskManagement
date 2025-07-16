@@ -115,6 +115,18 @@ public class BaseNotificationTests
     }
 
     [Fact]
+    public void ReadNotification_SetIsReadToFalse_ShouldThrowDomainException()
+    {
+        var notification = new BaseNotification();
+
+        notification.ReadNotification();
+
+        var act = () => notification.ReadNotification();
+
+        act.Should().Throw<DomainException>();
+    }
+
+    [Fact]
     public void InheritsFromBaseEntity_ShouldHaveBaseProperties()
     {
         var notification = new BaseNotification();

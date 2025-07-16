@@ -8,7 +8,7 @@ public class ApplicationUser : IdentityUser<int>
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
 
-    public ICollection<AppTask>? AssignedTasks { get; set; }
+    public ICollection<TaskAssignmentRequest>? AssignedTaskRequests { get; set; }
     public ICollection<BaseNotification>? Notifications { get; set; }
 
     public void SetFirstName(string firstName)
