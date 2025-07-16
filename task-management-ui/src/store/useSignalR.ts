@@ -3,6 +3,8 @@ import useNotificationStore from "@/store/useNotificationStore.ts";
 import useTaskCommentStore from "@/store/useCommentStore.ts";
 import {useEffect} from "react";
 import {TaskComment} from "@/models/task.ts";
+import {Notification} from "@/models/notification.ts";
+import {useAuthStore} from "@/store/useAuthStore.ts";
 
 
 const useSignalR = () => {
@@ -15,8 +17,9 @@ const useSignalR = () => {
     const deleteTaskComment = useTaskCommentStore(
         (state) => state.removeTaskCommentFromStateManagement
     );
-
-    //const [isConnected, setIsConnected] = useState(false);
+    const isAuthenticated = useAuthStore(
+        (state) => state.isAuthenticated
+    );
 
     useEffect(() => {
         if (connection.state === "Disconnected") {
@@ -53,7 +56,7 @@ const useSignalR = () => {
                     .then(() => console.log("❌ Disconnected from NotificationHub"));
             }
         };
-    }, [addNotification, addTaskComment, deleteTaskComment]);
+    }, [addNotification, addTaskComment, deleteTaskComment, isAuthenticated]);
 };
 
 export default useSignalR;

@@ -114,7 +114,7 @@ public class TaskController : ControllerBase
     [HttpPost("{taskId:int}/assignees")]
     public async Task<IActionResult> AssignUserToTask(int taskId, [FromBody] TaskAssignmentRequestDto request)
     {
-        var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, request.TaskId);
+        var notification = await taskService.RequestTaskAssignmentAsync(request.AssigneeEmail, taskId);
 
         var dto = mapper.Map<NotificationResponseDto>(notification);
 

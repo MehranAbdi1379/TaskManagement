@@ -11,15 +11,16 @@ import RegisterForm from "./components/Auth/RegisterForm";
 import LoginForm from "./components/Auth/LoginForm";
 import {useEffect} from "react";
 import NotificationList from "./components/Notification/NotificationList";
-import useSignalR from "./store/useSignalR";
+import useSignalR from "@/store/useSignalR.ts";
 
 const App: React.FC = () => {
     const {isAuthenticated, userIsAuthenticated} = useAuthStore();
-    useSignalR();
 
     useEffect(() => {
         userIsAuthenticated();
     }, [userIsAuthenticated]);
+
+    useSignalR();
 
     return (
         <Router>

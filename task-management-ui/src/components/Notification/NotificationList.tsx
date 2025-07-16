@@ -1,5 +1,5 @@
 import {Box, Button, Center, Flex, HStack, Select, SimpleGrid, Spinner, Text, VStack,} from "@chakra-ui/react";
-import {useEffect, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {CheckIcon, CloseIcon} from "@chakra-ui/icons";
 import useNotificationStore from "../../store/useNotificationStore";
 import {useAuthStore} from "@/store/useAuthStore.ts";
@@ -55,7 +55,7 @@ const NotificationList: React.FC = () => {
 
     useEffect(() => {
         fetchNotifications();
-    }, [pageNumber, pageSize, sortOrder, activeOrHistory, fetchNotifications]);
+    }, [pageNumber, pageSize, sortOrder, activeOrHistory]);
 
     if (loading) {
         return (

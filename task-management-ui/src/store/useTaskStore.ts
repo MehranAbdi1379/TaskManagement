@@ -1,6 +1,15 @@
 import {Status, Task, TaskQueryParameters} from "@/models/task.ts";
 import {create} from "zustand";
-import {createTask, getAssignedUsers, getTaskById, getTasks, unassignTaskUser} from "@/services/taskService.ts";
+import {
+    createTask,
+    deleteTask,
+    getAssignedUsers,
+    getTaskById,
+    getTasks,
+    unassignTaskUser,
+    updateTask,
+    updateTaskStatus
+} from "@/services/taskService.ts";
 
 
 interface TaskStore {
@@ -53,6 +62,7 @@ const useTaskStore = create<TaskStore>((set) => ({
             set({totalPages: tasks.totalPages});
         } catch (error) {
             console.error("Error fetching tasks:", error);
+            throw error;
         } finally {
             set({loading: false});
         }

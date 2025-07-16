@@ -22,8 +22,9 @@ import {ChevronDownIcon, InfoIcon} from "@chakra-ui/icons";
 import useTaskStore from "../../store/useTaskStore";
 import {getStatusLabel, statusColors, statusIcons} from "./Task";
 
-import {useAuthStore} from "../../store/useAuthStore";
+import {useAuthStore} from "@/store/useAuthStore.ts";
 import {Status} from "@/models/task.ts";
+import {AxiosError} from "axios";
 
 const TaskList: React.FC = () => {
     const {tasks, getTasks, updateTaskStatus, totalPages} = useTaskStore();
@@ -45,8 +46,14 @@ const TaskList: React.FC = () => {
                 sortOrder,
             });
             setTaskTotalPages(totalPages);
-        } catch {
-            setIsAuthenticated(false);
+        } catch (error: unknown) {
+            const axiosError = error as AxiosError;
+
+            if (axiosError?.response?.status === 401) {
+                setIsAuthenticated(false);
+            } else {
+                console.error("Unexpected error fetching tasks:", error);
+            }
         }
     };
 
