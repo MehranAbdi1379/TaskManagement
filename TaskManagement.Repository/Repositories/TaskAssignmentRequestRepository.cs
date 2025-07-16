@@ -30,7 +30,16 @@ public class TaskAssignmentRequestRepository : BaseRepository<TaskAssignmentRequ
     public async Task<bool> RequestAlreadyExists(int assigneeId, int taskId)
     {
         return await _dbSet.AnyAsync(x =>
-            x.AssigneeId == assigneeId && x.TaskId == taskId && x.TaskOwnerId == userContext.UserId &&
+            x.AssigneeId == assigneeId && x.TaskId == taskId &&
             x.Deleted == false);
+    }
+
+    public async Task<TaskAssignmentRequest> GetTaskAssignmentRequestByUserIdAndTaskIdAsync(int userId, int taskId)
+    {
+        var taskAssignmentRequest = await
+            _dbSet.FirstOrDefaultAsync(tar => tar.TaskId == taskId && tar.AssigneeId == userId && tar.Deleted == false);
+        if (taskAssignmentRequest == null)
+            throw new Exception($"Task assignment request not found for user {userId} and task {taskId}");
+        return taskAssignmentRequest;
     }
 }

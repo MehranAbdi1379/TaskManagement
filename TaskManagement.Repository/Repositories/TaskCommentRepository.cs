@@ -29,11 +29,12 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
     public async Task<(TaskComment, List<BaseNotification>)> AddTaskCommentAsync(TaskComment taskComment,
         List<(int userId, int taskId)> taskUserGroups)
     {
-        var task = await _context.Tasks.Include(appTask => appTask.AssignedUsers)
+        var task = await _context.Tasks.Include(appTask =>
+                appTask.TaskAssignmentRequests.Where(tar => tar.IsAccepted && tar.Deleted == false))
             .FirstOrDefaultAsync(x => x.Id == taskComment.TaskId);
         if (task == null) throw new Exception($"Task with id {taskComment.TaskId} not found");
 
-        var taskUsers = task.AssignedUsers.Select(u => u.Id).ToList();
+        var taskUsers = task.TaskAssignmentRequests.Select(u => u.AssigneeId).ToList();
         taskUsers = taskUsers.Append(task.OwnerId).ToList();
 
         if (taskUsers.All(tu => tu != userContext.UserId))
@@ -83,10 +84,12 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
         //TODO: Add soft delete to global ef core options so you don't have to filter out these data each time
         query = query.Where(taskComment => taskComment.Deleted == false);
 
-        var task = _context.Tasks.Include(appTask => appTask.AssignedUsers).FirstOrDefault(t => t.Id == taskId);
+        var task = _context.Tasks
+            .Include(appTask => appTask.TaskAssignmentRequests.Where(tar => tar.IsAccepted && tar.Deleted == false))
+            .FirstOrDefault(t => t.Id == taskId);
         if (task == null) throw new Exception($"Task does not exist with id {taskId}.");
 
-        var taskUserIds = task.AssignedUsers.Select(u => u.Id).ToList();
+        var taskUserIds = task.TaskAssignmentRequests.Select(u => u.AssigneeId).ToList();
 
         taskUserIds = taskUserIds.Append(task.OwnerId).ToList();
 

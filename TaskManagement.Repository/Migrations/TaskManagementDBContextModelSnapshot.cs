@@ -22,21 +22,6 @@ namespace TaskManagement.Repository.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AppTaskAssignment", b =>
-                {
-                    b.Property<int>("TaskId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("TaskId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("AppTaskAssignment", (string)null);
-                });
-
             modelBuilder.Entity("BaseNotificationTaskComment", b =>
                 {
                     b.Property<int>("NotificationsId")
@@ -49,7 +34,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("TaskCommentsId");
 
-                    b.ToTable("BaseNotificationTaskComment", (string)null);
+                    b.ToTable("BaseNotificationTaskComment");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -189,7 +174,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Tasks", (string)null);
+                    b.ToTable("Tasks");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.ApplicationRole", b =>
@@ -336,7 +321,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", (string)null);
+                    b.ToTable("Notifications");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskAssignmentRequest", b =>
@@ -365,9 +350,6 @@ namespace TaskManagement.Repository.Migrations
                     b.Property<int>("TaskId")
                         .HasColumnType("int");
 
-                    b.Property<int>("TaskOwnerId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -379,9 +361,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("TaskId");
 
-                    b.HasIndex("TaskOwnerId");
-
-                    b.ToTable("TaskAssignmentRequests", (string)null);
+                    b.ToTable("TaskAssignmentRequests");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskComment", b =>
@@ -417,22 +397,7 @@ namespace TaskManagement.Repository.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TaskComments", (string)null);
-                });
-
-            modelBuilder.Entity("AppTaskAssignment", b =>
-                {
-                    b.HasOne("TaskManagement.Domain.Models.AppTask", null)
-                        .WithMany()
-                        .HasForeignKey("TaskId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("TaskManagement.Domain.Models.ApplicationUser", null)
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                    b.ToTable("TaskComments");
                 });
 
             modelBuilder.Entity("BaseNotificationTaskComment", b =>
@@ -526,7 +491,7 @@ namespace TaskManagement.Repository.Migrations
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskAssignmentRequest", b =>
                 {
                     b.HasOne("TaskManagement.Domain.Models.ApplicationUser", "Assignee")
-                        .WithMany()
+                        .WithMany("AssignedTaskRequests")
                         .HasForeignKey("AssigneeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -543,19 +508,11 @@ namespace TaskManagement.Repository.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TaskManagement.Domain.Models.ApplicationUser", "TaskOwner")
-                        .WithMany()
-                        .HasForeignKey("TaskOwnerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Assignee");
 
                     b.Navigation("RequestNotification");
 
                     b.Navigation("Task");
-
-                    b.Navigation("TaskOwner");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Models.TaskComment", b =>
@@ -586,6 +543,8 @@ namespace TaskManagement.Repository.Migrations
 
             modelBuilder.Entity("TaskManagement.Domain.Models.ApplicationUser", b =>
                 {
+                    b.Navigation("AssignedTaskRequests");
+
                     b.Navigation("Notifications");
                 });
 #pragma warning restore 612, 618

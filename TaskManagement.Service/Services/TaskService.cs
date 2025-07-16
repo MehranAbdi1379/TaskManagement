@@ -113,13 +113,13 @@ public class TaskService : ITaskService
         if (await taskAssignmentRequestRepository.RequestAlreadyExists(assignee.Id, taskId))
             throw new Exception("This request already exists.");
 
-        var taskUsers = task.AssignedUsers;
-        if (assignee.Id == userContext.UserId || taskUsers.Any(x => x.Id == userContext.UserId))
+        var taskUsers = task.TaskAssignmentRequests;
+        if (assignee.Id == userContext.UserId || taskUsers.Any(x => x.AssigneeId == userContext.UserId))
             throw new Exception($"User with email {assigneeEmail} already has the task with id {taskId}.");
 
         var owner = await userManager.Users.FirstAsync(x => x.Id == userContext.UserId);
 
-        var request = new TaskAssignmentRequest(userContext.UserId, assignee.Id, taskId);
+        var request = new TaskAssignmentRequest(assignee.Id, taskId);
 
 
         // Create a notification for the assignee
@@ -140,29 +140,27 @@ public class TaskService : ITaskService
             await taskAssignmentRequestRepository.GetTaskAssignmentRequestByNotificationIdAsync(notificationId);
 
         request.SetIsAccepted(accept);
-        request.Delete();
+        if (!accept) request.Delete();
 
         var user = await userManager.Users.FirstOrDefaultAsync(u => u.Id == request.AssigneeId);
-        if (user == null) throw new Exception($"User with email {request.AssigneeId} does not exist to assign.");
+        if (user == null) throw new Exception($"User with id {request.AssigneeId} does not exist to assign.");
 
         request.RequestNotification.ReadNotification();
         await taskAssignmentRequestRepository.UpdateAsync(request);
 
-        if (accept)
-        {
-            await AssignTaskToUserAsync(request.TaskId);
+        var taskOwnerId = request.Task.OwnerId;
 
+        if (accept)
             // Notify the task owner
             return await notificationService.CreateNotification(
-                request.TaskOwnerId, "Task Assignment Accepted",
+                taskOwnerId, "Task Assignment Accepted",
                 $"User ({user.FirstName + " " + user.LastName}) has accepted your task invitation for task" +
                 $" (Title: {request.Task.Title}, Description: {request.Task.Description})."
                 , NotificationType.General
             );
-        }
 
         return await notificationService.CreateNotification(
-            request.TaskOwnerId, "Task Assignment Rejected",
+            taskOwnerId, "Task Assignment Rejected",
             $"User {user.FirstName + " " + user.LastName} has rejected your task invitation." +
             $" (Title: {request.Task.Title}, Description: {request.Task.Description})."
             , NotificationType.General
@@ -177,21 +175,16 @@ public class TaskService : ITaskService
 
     public async Task<BaseNotification> UnassignTaskAsync(int taskId, int userId)
     {
+        var request =
+            await taskAssignmentRequestRepository.GetTaskAssignmentRequestByUserIdAndTaskIdAsync(userId, taskId);
+        request.SetIsAccepted(false);
+        request.Delete();
         var task = await baseRepository.GetTaskByIdAsync(taskId);
-        await baseRepository.UnassignTaskAsync(taskId, userId);
+        await taskAssignmentRequestRepository.UpdateAsync(request);
         return await notificationService.CreateNotification(
             userId, "Task Unassignment",
             $"You are unassigned from Task (Title: {task.Title}, Description: {task.Description})"
             , NotificationType.General
         );
-    }
-
-    private async Task AssignTaskToUserAsync(int taskId)
-    {
-        var user = await userManager.Users
-            .Include(u => u.AssignedTasks)
-            .FirstOrDefaultAsync(u => u.Id == userContext.UserId);
-        if (user == null) throw new Exception($"User with id {userContext.UserId} does not exist to assign.");
-        await baseRepository.AssignTaskAsync(taskId, user);
     }
 }

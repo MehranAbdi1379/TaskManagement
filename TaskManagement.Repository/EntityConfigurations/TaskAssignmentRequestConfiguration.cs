@@ -10,10 +10,5 @@ public class TaskAssignmentRequestConfiguration : IEntityTypeConfiguration<TaskA
     {
         builder.Property(x => x.IsAccepted).IsRequired();
         builder.Property(x => x.RequestNotificationId);
-        builder
-            .HasOne(r => r.TaskOwner)
-            .WithMany()
-            .HasForeignKey(r => r.TaskOwnerId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

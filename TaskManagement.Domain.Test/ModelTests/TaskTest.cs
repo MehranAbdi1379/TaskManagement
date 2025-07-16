@@ -183,13 +183,11 @@ public class AppTaskTests
         task.Comments = comments;
         task.SetOwnerId(3);
         task.Owner = owner;
-        task.AssignedUsers = assignedUsers;
         task.TaskAssignmentRequests = taskAssignmentRequests;
 
         task.OwnerId.Should().Be(3);
         task.Owner.Should().Be(owner);
         task.Comments.Should().BeEquivalentTo(comments);
-        task.AssignedUsers.Should().BeEquivalentTo(assignedUsers);
         task.TaskAssignmentRequests.Should().BeEquivalentTo(taskAssignmentRequests);
     }
 }

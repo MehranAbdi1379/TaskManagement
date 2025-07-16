@@ -12,10 +12,9 @@ public class TaskAssignmentRequestTests
         var taskId = 3;
 
         // Act
-        var request = new TaskAssignmentRequest(taskOwnerId, assigneeId, taskId);
+        var request = new TaskAssignmentRequest(assigneeId, taskId);
 
         // Assert
-        request.TaskOwnerId.Should().Be(taskOwnerId);
         request.AssigneeId.Should().Be(assigneeId);
         request.TaskId.Should().Be(taskId);
     }
@@ -28,16 +27,6 @@ public class TaskAssignmentRequestTests
         request.SetRequestNotificationId(99);
 
         request.RequestNotificationId.Should().Be(99);
-    }
-
-    [Fact]
-    public void SetTaskOwnerId_ShouldUpdateProperty()
-    {
-        var request = new TaskAssignmentRequest();
-
-        request.SetTaskOwnerId(15);
-
-        request.TaskOwnerId.Should().Be(15);
     }
 
     [Fact]
@@ -93,12 +82,10 @@ public class TaskAssignmentRequestTests
         var requestNotification = new BaseNotification();
 
         request.Assignee = assignee;
-        request.TaskOwner = taskOwner;
         request.Task = task;
         request.RequestNotification = requestNotification;
 
         request.Assignee.Should().Be(assignee);
-        request.TaskOwner.Should().Be(taskOwner);
         request.Task.Should().Be(task);
         request.RequestNotification.Should().Be(requestNotification);
     }
