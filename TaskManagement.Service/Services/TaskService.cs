@@ -38,10 +38,13 @@ public class TaskService : ITaskService
 
     public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
     {
-        var task = new AppTask(dto.Title, dto.Description, dto.TaskStatus);
-        task.SetOwnerId(userContext.UserId);
+        var task = new AppTask(dto.Title, dto.Description, dto.TaskStatus, userContext.UserId);
+        if (dto.Priority != 0) task.SetPriority(dto.Priority);
+        if (dto.DueDate.HasValue) task.SetDueDate(dto.DueDate.Value);
         await baseRepository.AddAsync(task);
-        return mapper.Map<TaskResponseDto>(task);
+        var mappedResult = mapper.Map<TaskResponseDto>(task);
+        mappedResult.IsOwner = true;
+        return mappedResult;
     }
 
     public async Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto, int taskId)
@@ -51,6 +54,9 @@ public class TaskService : ITaskService
         task.SetTitle(dto.Title);
         task.SetDescription(dto.Description);
         task.UpdateUpdatedAt();
+        if (dto.Priority != 0) task.SetPriority(dto.Priority);
+        if (dto.DueDate.HasValue) task.SetDueDate(dto.DueDate.Value);
+
         await baseRepository.UpdateAsync(task);
         var result = mapper.Map<TaskResponseDto>(task);
         result.IsOwner = task.OwnerId == userContext.UserId;
@@ -60,8 +66,8 @@ public class TaskService : ITaskService
     public async Task<PagedResult<TaskResponseDto>> GetAllTasksAsync(TaskQueryParameters parameters)
     {
         var (tasks, totalCount) = await baseRepository.GetTasksAsync(parameters.PageNumber, parameters.PageSize,
-            parameters.Status,
-            parameters.SortOrder);
+            parameters.Status, parameters.Priority, parameters.DueDate,
+            parameters.SortOptions, parameters.AscOrDesc);
         var mappedResults = mapper.Map<List<TaskResponseDto>>(tasks);
 
         var mappedDict = mappedResults.ToDictionary(mr => mr.Id);

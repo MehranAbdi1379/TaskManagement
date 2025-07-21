@@ -65,8 +65,8 @@ public class TaskCommentRepository : BaseRepository<TaskComment>, ITaskCommentRe
         foreach (var taskUser in taskUsers)
         {
             var baseNotification = await notificationRepository.AddAsync(new BaseNotification(
-                taskUser, "New Task Comment", user.FirstName + " " + user.LastName + ": "
-                                              + taskComment.Text, NotificationType.General));
+                taskUser, task.Title, user.FirstName + " " + user.LastName + ": "
+                                      + taskComment.Text, NotificationType.General));
             baseNotifications.Add(baseNotification);
         }
 
