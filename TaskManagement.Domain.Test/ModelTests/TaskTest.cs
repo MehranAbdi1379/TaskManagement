@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Exceptions;
 using TaskManagement.Domain.Models;
 using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
@@ -15,12 +14,12 @@ public class AppTaskTests
         var status = TaskStatus.InProgress;
 
         // Act
-        var task = new AppTask(title, description, status);
+        var task = new AppTask(title, description, status, 0);
 
         // Assert
         task.Title.Should().Be(title);
         task.Description.Should().Be(description);
-        task.TaskStatus.Should().Be(status);
+        task.Status.Should().Be(status);
     }
 
     [Fact]
@@ -32,7 +31,7 @@ public class AppTaskTests
         var status = TaskStatus.Pending;
 
         // Act
-        Action act = () => new AppTask(title, description, status);
+        Action act = () => new AppTask(title, description, status, 0);
 
         // Assert
         act.Should().Throw<DomainException>()
@@ -42,7 +41,7 @@ public class AppTaskTests
     [Fact]
     public void SetTitle_WithValidTitle_ShouldUpdateTitle()
     {
-        var task = new AppTask("Old Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Old Title", "Desc", TaskStatus.Pending, 0);
 
         task.SetTitle("New Title");
 
@@ -52,7 +51,7 @@ public class AppTaskTests
     [Fact]
     public void SetTitle_WithEmptyTitle_ShouldThrowDomainException()
     {
-        var task = new AppTask("Old Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Old Title", "Desc", TaskStatus.Pending, 0);
 
         var act = () => task.SetTitle("");
 
@@ -63,7 +62,7 @@ public class AppTaskTests
     [Fact]
     public void SetDescription_ShouldUpdateDescription()
     {
-        var task = new AppTask("Title", "Old Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Old Desc", TaskStatus.Pending, 0);
 
         task.SetDescription("New Desc");
 
@@ -73,20 +72,20 @@ public class AppTaskTests
     [Fact]
     public void SetStatus_WithValidStatus_ShouldUpdateStatus()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.SetStatus(TaskStatus.Completed);
 
-        task.TaskStatus.Should().Be(TaskStatus.Completed);
+        task.Status.Should().Be(TaskStatus.Completed);
 
         task.SetStatus(TaskStatus.InProgress);
-        task.TaskStatus.Should().Be(TaskStatus.InProgress);
+        task.Status.Should().Be(TaskStatus.InProgress);
     }
 
     [Fact]
     public void SetStatus_WithInvalidEnumValue_ShouldThrowDomainException()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         var act = () => task.SetStatus((TaskStatus)999);
 
@@ -97,7 +96,7 @@ public class AppTaskTests
     [Fact]
     public void SetOwnerId_ShouldSetOwnerId()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.SetOwnerId(42);
 
@@ -107,7 +106,7 @@ public class AppTaskTests
     [Fact]
     public void Delete_ShouldSetDeletedToTrue()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.Delete();
 
@@ -117,7 +116,7 @@ public class AppTaskTests
     [Fact]
     public void Delete_WhenAlreadyDeleted_ShouldThrowDomainException()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.Delete();
 
@@ -130,7 +129,7 @@ public class AppTaskTests
     [Fact]
     public void UpdateUpdatedAt_ShouldUpdateTimestamp()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
         var original = task.UpdatedAt;
 
         Thread.Sleep(10); // Small delay to ensure timestamp change
@@ -142,7 +141,7 @@ public class AppTaskTests
     [Fact]
     public void BaseEntity_ShouldSetInitialValues()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.Id.Should().Be(0);
         task.CreatedAt.Should().BeCloseTo(DateTime.Now, TimeSpan.FromSeconds(1));
@@ -153,11 +152,11 @@ public class AppTaskTests
     [Fact]
     public void Retrieve_ShouldReturnPropertiesTaskAndDescriptionAndStatusAndOwnerId()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
 
         task.Title.Should().Be("Title");
         task.Description.Should().Be("Desc");
-        task.TaskStatus.Should().Be(TaskStatus.Pending);
+        task.Status.Should().Be(TaskStatus.Pending);
     }
 
     [Fact]
@@ -166,13 +165,13 @@ public class AppTaskTests
         var task = new AppTask();
         task.Title.Should().BeNull();
         task.Description.Should().BeNull();
-        task.TaskStatus.Should().Be(0);
+        task.Status.Should().Be(0);
     }
 
     [Fact]
     public void Relationships()
     {
-        var task = new AppTask("Title", "Desc", TaskStatus.Pending);
+        var task = new AppTask("Title", "Desc", TaskStatus.Pending, 0);
         var owner = new ApplicationUser
         {
             Id = 3

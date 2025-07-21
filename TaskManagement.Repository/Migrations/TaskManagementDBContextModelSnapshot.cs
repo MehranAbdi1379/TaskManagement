@@ -157,8 +157,16 @@ namespace TaskManagement.Repository.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("OwnerId")
                         .HasColumnType("int");
+
+                    b.Property<int>("Priority")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
 
                     b.Property<int>("Status")
                         .HasColumnType("int");

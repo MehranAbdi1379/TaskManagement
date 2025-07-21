@@ -94,11 +94,12 @@ public class ApplicationUserTests
     {
         var user = new ApplicationUser();
         var notifications = new List<BaseNotification>();
-        var assignedTasks = new List<AppTask>();
+        var assignedTaskRequests = new List<TaskAssignmentRequest>();
 
         user.Notifications = notifications;
+        user.AssignedTaskRequests = assignedTaskRequests;
 
         user.Notifications.Should().BeEquivalentTo(notifications);
-        user.AssignedTaskRequests.Should().BeEquivalentTo(assignedTasks);
+        user.AssignedTaskRequests.Should().BeEquivalentTo(assignedTaskRequests);
     }
 }

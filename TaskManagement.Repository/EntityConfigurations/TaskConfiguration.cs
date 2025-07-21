@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Models;
 
 namespace TaskManagement.Repository.EntityConfigurations;
@@ -11,10 +12,12 @@ public class TaskConfiguration : IEntityTypeConfiguration<AppTask>
         builder.Property(t => t.Deleted).IsRequired();
         builder.Property(t => t.Title).IsRequired().HasColumnType("nvarchar(100)");
         builder.Property(t => t.Description).IsRequired(false).HasColumnType("nvarchar(300)");
-        builder.Property(t => t.TaskStatus).IsRequired();
+        builder.Property(t => t.Status).IsRequired();
         builder.Property(t => t.UpdatedAt).IsRequired();
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.OwnerId).IsRequired();
+        builder.Property(t => t.Priority).IsRequired().HasDefaultValue(TaskPriority.Low);
+        builder.Property(t => t.DueDate).IsRequired(false);
 
         builder.HasOne(t => t.Owner)
             .WithMany() // Or .WithMany(u => u.OwnedTasks)
