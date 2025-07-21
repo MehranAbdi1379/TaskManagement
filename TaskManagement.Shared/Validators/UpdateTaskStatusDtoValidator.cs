@@ -1,14 +1,13 @@
 ﻿using FluentValidation;
 using TaskManagement.Shared.DTOs.Task;
 
-namespace TaskManagement.Shared.Validators
+namespace TaskManagement.Shared.Validators;
+
+public class UpdateTaskStatusDtoValidator : AbstractValidator<UpdateTaskStatusDto>
 {
-    public class UpdateTaskStatusDtoValidator: AbstractValidator<UpdateTaskStatusDto>
+    public UpdateTaskStatusDtoValidator()
     {
-        public UpdateTaskStatusDtoValidator()
-        {
-            RuleFor(x => (int)x.Status)
-               .InclusiveBetween(0, 3).WithMessage("Status code should be from 0 to 3");
-        }
+        RuleFor(x => (int)x.TaskStatus)
+            .InclusiveBetween(0, 3).WithMessage("Status code should be from 0 to 3");
     }
 }

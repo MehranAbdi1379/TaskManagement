@@ -1,5 +1,6 @@
 ﻿using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Exceptions;
+using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
 
 namespace TaskManagement.Domain.Models;
 
@@ -9,16 +10,16 @@ public class AppTask : BaseEntity
     {
     }
 
-    public AppTask(string title, string description, Status taskStatus)
+    public AppTask(string title, string description, TaskStatus taskTaskStatus)
     {
         SetTitle(title);
         SetDescription(description);
-        SetStatus(taskStatus);
+        SetStatus(taskTaskStatus);
     }
 
     public string Title { get; private set; }
     public string Description { get; private set; }
-    public Status Status { get; private set; }
+    public TaskStatus TaskStatus { get; private set; }
     public int OwnerId { get; private set; }
 
     public ApplicationUser Owner { get; set; }
@@ -41,16 +42,16 @@ public class AppTask : BaseEntity
         Description = description;
     }
 
-    public void SetStatus(Status taskStatus)
+    public void SetStatus(TaskStatus taskTaskStatus)
     {
-        ValidateStatus(taskStatus);
-        Status = taskStatus;
+        ValidateStatus(taskTaskStatus);
+        TaskStatus = taskTaskStatus;
     }
 
-    private void ValidateStatus(Status taskStatus)
+    private void ValidateStatus(TaskStatus taskTaskStatus)
     {
-        if (!Enum.IsDefined(typeof(Status), taskStatus))
-            throw new DomainException($"Invalid Task Status Code with code {taskStatus} for Task Id {Id}");
+        if (!Enum.IsDefined(typeof(TaskStatus), taskTaskStatus))
+            throw new DomainException($"Invalid Task Status Code with code {taskTaskStatus} for Task Id {Id}");
     }
 
     public void SetOwnerId(int userId)

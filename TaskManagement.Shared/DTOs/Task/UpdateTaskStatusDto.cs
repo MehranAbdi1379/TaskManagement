@@ -1,8 +1,8 @@
-﻿using TaskManagement.Domain.Enums;
+﻿using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
 
 namespace TaskManagement.Shared.DTOs.Task;
 
 public class UpdateTaskStatusDto
 {
-    public Status Status { get; set; }
+    public TaskStatus TaskStatus { get; set; }
 }

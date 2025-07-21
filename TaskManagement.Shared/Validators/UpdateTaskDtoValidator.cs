@@ -14,7 +14,7 @@ namespace TaskManagement.Shared.Validators
             RuleFor(x => x.Description)
                 .MaximumLength(300).WithMessage("Description cannot exceed 300 characters.");
 
-            RuleFor(x => (int)x.Status)
+            RuleFor(x => (int)x.TaskStatus)
                 .InclusiveBetween(0, 3).WithMessage("Status code should be from 0 to 3");
         }
     }

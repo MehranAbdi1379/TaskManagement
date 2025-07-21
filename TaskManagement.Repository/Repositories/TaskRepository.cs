@@ -3,6 +3,7 @@ using TaskManagement.Domain.Enums;
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 using TaskManagement.Shared.ServiceInterfaces;
+using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
 
 namespace TaskManagement.Repository.Repositories;
 
@@ -15,13 +16,13 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
         this.userContext = userContext;
     }
 
-    public async Task<(List<AppTask> tasks, int totalCount)> GetTasksAsync(int pageNumber, int pageSize, Status? status,
+    public async Task<(List<AppTask> tasks, int totalCount)> GetTasksAsync(int pageNumber, int pageSize, TaskStatus? status,
         string sortOrder)
     {
         var query = _context.Tasks.AsQueryable().AsNoTracking();
 
         // Filter by Status (if provided)
-        if (status.HasValue) query = query.Where(task => task.Status == status.Value);
+        if (status.HasValue) query = query.Where(task => task.TaskStatus == status.Value);
 
         query = query.Where(task => task.Deleted == false);
 

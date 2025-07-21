@@ -38,7 +38,7 @@ public class TaskService : ITaskService
 
     public async Task<TaskResponseDto> CreateTaskAsync(CreateTaskDto dto)
     {
-        var task = new AppTask(dto.Title, dto.Description, dto.Status);
+        var task = new AppTask(dto.Title, dto.Description, dto.TaskStatus);
         task.SetOwnerId(userContext.UserId);
         await baseRepository.AddAsync(task);
         return mapper.Map<TaskResponseDto>(task);
@@ -47,7 +47,7 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto> UpdateTaskAsync(UpdateTaskDto dto, int taskId)
     {
         var task = await baseRepository.GetTaskByIdAsync(taskId);
-        task.SetStatus(dto.Status);
+        task.SetStatus(dto.TaskStatus);
         task.SetTitle(dto.Title);
         task.SetDescription(dto.Description);
         task.UpdateUpdatedAt();
@@ -94,7 +94,7 @@ public class TaskService : ITaskService
     public async Task<TaskResponseDto> UpdateTaskStatusAsync(UpdateTaskStatusDto dto, int taskId)
     {
         var task = await baseRepository.GetTaskByIdAsync(taskId);
-        task.SetStatus(dto.Status);
+        task.SetStatus(dto.TaskStatus);
         task.UpdateUpdatedAt();
         await baseRepository.UpdateAsync(task);
         var result = mapper.Map<TaskResponseDto>(task);
