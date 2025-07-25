@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TaskManagement.Domain.Enums;
+using TaskManagement.Domain.Filters;
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 using TaskManagement.Repository.Extensions.Task;
@@ -53,7 +54,7 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
 
     public async Task<(List<AppTask> tasks, int totalCount)> GetTasksAsync(int pageNumber, int pageSize,
         TaskStatus? status, TaskPriority? priority, DateTime? dueDate,
-        TaskSortOptions sortOption, string ascOrDesc)
+        TaskSortOptions sortOption, bool desc)
     {
         var query = _context.Tasks.AsQueryable().AsNoTracking();
 
@@ -81,7 +82,7 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
             taskUsers
                 .Contains(task.Id));
 
-        query = query.SortTasks(sortOption, ascOrDesc);
+        query = query.SortTasks(sortOption, desc);
 
         // Paging
         var totalCount = await query.CountAsync();
@@ -91,5 +92,77 @@ public class TaskRepository : BaseRepository<AppTask>, ITaskRepository
             .ToListAsync();
 
         return (tasks, totalCount);
+    }
+
+    public async Task<int> GetTaskCountByStatusAsync(TaskStatus status, TaskReportFilters filters)
+    {
+        var query = GetTasksWithAssignmentRequestsForCurrentUser();
+        query = FilterTaskByDates(query, filters);
+        return await query.CountAsync(t =>
+            t.Status == status);
+    }
+
+    public async Task<int> GetTaskCountByPriorityAsync(TaskPriority priority, TaskReportFilters filters)
+    {
+        var query = GetTasksWithAssignmentRequestsForCurrentUser();
+        query = FilterTaskByDates(query, filters);
+        return await query.CountAsync(t => t.Priority == priority);
+    }
+
+    public async Task<int> GetTotalTaskCountAsync(TaskReportFilters filters)
+    {
+        var query = GetTasksWithAssignmentRequestsForCurrentUser();
+        query = FilterTaskByDates(query, filters);
+        return await query.CountAsync();
+    }
+
+    public async Task<int> GetOverDueCountAsync(TaskReportFilters filters)
+    {
+        var query = GetTasksWithAssignmentRequestsForCurrentUser();
+        query = FilterTaskByDates(query, filters);
+        return await query.Where(t =>
+                t.DueDate != null && t.DueDate.Value.Date <= DateTime.Now.Date &&
+                t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled)
+            .CountAsync();
+    }
+
+    public async Task<int> GetDueTodayCountAsync(TaskReportFilters filters)
+    {
+        var query = GetTasksWithAssignmentRequestsForCurrentUser();
+        query = FilterTaskByDates(query, filters);
+        return await query.CountAsync(t =>
+            t.DueDate != null && t.DueDate.Value.Date == DateTime.Now.Date &&
+            t.Status != TaskStatus.Completed && t.Status != TaskStatus.Cancelled);
+    }
+
+    public async Task<int> GetDeletedTaskCountAsync(TaskReportFilters filters)
+    {
+        var query = _context.Tasks.Include(t => t.TaskAssignmentRequests).AsNoTracking();
+        query = query.Where(t => t.Deleted == true &&
+                                 (t.TaskAssignmentRequests.Any(tar =>
+                                      tar.IsAccepted && tar.Deleted == false && tar.AssigneeId == userContext.UserId) ||
+                                  t.OwnerId == userContext.UserId));
+        query = FilterTaskByDates(query, filters);
+        return await query.CountAsync();
+    }
+
+    private IQueryable<AppTask> FilterTaskByDates(IQueryable<AppTask> query, TaskReportFilters filters)
+    {
+        if (filters.CreatedStartDate != null) query = query.Where(t => t.CreatedAt >= filters.CreatedStartDate);
+        if (filters.CreatedEndDate != null) query = query.Where(t => t.CreatedAt <= filters.CreatedEndDate);
+        if (filters.DueDateStartDate != null) query = query.Where(t => t.DueDate >= filters.DueDateStartDate);
+        if (filters.DueDateEndDate != null) query = query.Where(t => t.DueDate <= filters.DueDateEndDate);
+        if (filters.UpdatedStartDate != null) query = query.Where(t => t.UpdatedAt >= filters.UpdatedStartDate);
+        if (filters.UpdatedEndDate != null) query = query.Where(t => t.UpdatedAt <= filters.UpdatedEndDate);
+        return query;
+    }
+
+    private IQueryable<AppTask> GetTasksWithAssignmentRequestsForCurrentUser()
+    {
+        var query = _context.Tasks.Include(t => t.TaskAssignmentRequests).AsNoTracking();
+        return query.Where(t => t.Deleted == false &&
+                                (t.TaskAssignmentRequests.Any(tar =>
+                                     tar.IsAccepted && tar.Deleted == false && tar.AssigneeId == userContext.UserId) ||
+                                 t.OwnerId == userContext.UserId));
     }
 }

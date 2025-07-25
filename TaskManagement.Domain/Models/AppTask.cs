@@ -11,7 +11,7 @@ public class AppTask : BaseEntity
     }
 
     public AppTask(string title, string description, TaskStatus taskStatus, int ownerId,
-        TaskPriority priority = TaskPriority.Low)
+        TaskPriority priority = TaskPriority.Medium)
     {
         SetTitle(title);
         SetDescription(description);
