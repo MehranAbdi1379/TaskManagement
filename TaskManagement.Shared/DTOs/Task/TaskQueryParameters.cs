@@ -12,5 +12,5 @@ public class TaskQueryParameters
     public TaskPriority? Priority { get; set; }
     public DateTime? DueDate { get; set; }
     public TaskSortOptions SortOptions { get; set; } = TaskSortOptions.UpdatedDate;
-    public string AscOrDesc { get; set; } = "desc";
+    public bool Desc { get; set; } = true;
 }

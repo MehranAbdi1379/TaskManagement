@@ -13,10 +13,10 @@ public static class TaskSorter
     };
 
     public static IQueryable<AppTask> SortTasks(this IQueryable<AppTask> query, TaskSortOptions option,
-        string ascOrDesc)
+        bool desc)
     {
         var sorter = Sorters.FirstOrDefault(s => s.SortOption == option);
         if (sorter == null) throw new Exception($"Sorter not found: {option}");
-        return sorter.Sort(query, ascOrDesc);
+        return sorter.Sort(query, desc);
     }
 }

@@ -7,9 +7,9 @@ public class TaskSorterByPriority : ITaskSorter
 {
     public TaskSortOptions SortOption => TaskSortOptions.Priority;
 
-    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, string ascOrDesc)
+    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, bool desc)
     {
-        if (ascOrDesc == "desc")
+        if (desc)
             return query.OrderByDescending(x => x.Priority);
         return query.OrderBy(x => x.Priority);
     }

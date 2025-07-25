@@ -6,5 +6,5 @@ namespace TaskManagement.Repository.Extensions.Task;
 public interface ITaskSorter
 {
     public TaskSortOptions SortOption { get; }
-    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, string ascOrDesc);
+    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, bool desc);
 }

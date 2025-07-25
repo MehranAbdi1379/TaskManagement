@@ -7,9 +7,9 @@ public class TaskSorterByUpdatedDate : ITaskSorter
 {
     public TaskSortOptions SortOption => TaskSortOptions.UpdatedDate;
 
-    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, string ascOrDesc)
+    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, bool desc)
     {
-        if (ascOrDesc == "desc")
+        if (desc)
             return query.OrderByDescending(t => t.UpdatedAt);
         return query.OrderBy(t => t.UpdatedAt);
     }

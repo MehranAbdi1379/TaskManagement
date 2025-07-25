@@ -16,7 +16,7 @@ public class TaskConfiguration : IEntityTypeConfiguration<AppTask>
         builder.Property(t => t.UpdatedAt).IsRequired();
         builder.Property(t => t.CreatedAt).IsRequired();
         builder.Property(t => t.OwnerId).IsRequired();
-        builder.Property(t => t.Priority).IsRequired().HasDefaultValue(TaskPriority.Low);
+        builder.Property(t => t.Priority).IsRequired().HasDefaultValue(TaskPriority.Medium);
         builder.Property(t => t.DueDate).IsRequired(false);
 
         builder.HasOne(t => t.Owner)

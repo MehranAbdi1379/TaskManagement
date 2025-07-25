@@ -7,10 +7,8 @@ public class TaskSorterByDueDate : ITaskSorter
 {
     public TaskSortOptions SortOption => TaskSortOptions.DueDate;
 
-    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, string ascOrDesc)
+    public IQueryable<AppTask> Sort(IQueryable<AppTask> query, bool desc)
     {
-        if (ascOrDesc == "desc")
-            return query.OrderByDescending(t => t.Priority);
-        return query.OrderBy(t => t.Priority);
+        return desc ? query.OrderByDescending(t => t.Priority) : query.OrderBy(t => t.Priority);
     }
 }
