@@ -155,4 +155,11 @@ public class TaskController : ControllerBase
 
         return Ok($"User with id {userId} has been unassigned from the task {taskId}.");
     }
+
+    [HttpGet("report")]
+    public async Task<IActionResult> GetReport([FromQuery] TaskReportQueryDto dto)
+    {
+        var result = await taskService.GetTaskReport(dto);
+        return Ok(result);
+    }
 }
