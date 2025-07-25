@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using TaskManagement.Domain.Enums;
+using TaskManagement.Domain.Filters;
 using TaskManagement.Domain.Interfaces;
 using TaskManagement.Domain.Models;
 using TaskManagement.Shared.DTOs;
 using TaskManagement.Shared.DTOs.Task;
 using TaskManagement.Shared.ServiceInterfaces;
+using TaskStatus = TaskManagement.Domain.Enums.TaskStatus;
 
 namespace TaskManagement.Service.Services;
 
@@ -67,7 +69,7 @@ public class TaskService : ITaskService
     {
         var (tasks, totalCount) = await baseRepository.GetTasksAsync(parameters.PageNumber, parameters.PageSize,
             parameters.Status, parameters.Priority, parameters.DueDate,
-            parameters.SortOptions, parameters.AscOrDesc);
+            parameters.SortOptions, parameters.Desc);
         var mappedResults = mapper.Map<List<TaskResponseDto>>(tasks);
 
         var mappedDict = mappedResults.ToDictionary(mr => mr.Id);
@@ -192,5 +194,66 @@ public class TaskService : ITaskService
             $"You are unassigned from Task (Title: {task.Title}, Description: {task.Description})"
             , NotificationType.General
         );
+    }
+
+    public async Task<TaskReportResponseDto> GetTaskReport(TaskReportQueryDto dto)
+    {
+        var filters = new TaskReportFilters
+        {
+            CreatedEndDate = dto.CreatedEndDate,
+            CreatedStartDate = dto.CreatedStartDate,
+            DueDateEndDate = dto.DueDateEndDate,
+            DueDateStartDate = dto.DueDateStartDate,
+            UpdatedEndDate = dto.UpdatedEndDate,
+            UpdatedStartDate = dto.UpdatedStartDate
+        };
+        var report = new TaskReportResponseDto();
+        var priorities = new List<TaskReportResponseDto.TaskPriorityCount>();
+        priorities.Add(new TaskReportResponseDto.TaskPriorityCount
+        {
+            Count = await baseRepository.GetTaskCountByPriorityAsync(TaskPriority.Low, filters),
+            Priority = nameof(TaskPriority.Low)
+        });
+        priorities.Add(new TaskReportResponseDto.TaskPriorityCount
+        {
+            Count = await baseRepository.GetTaskCountByPriorityAsync(TaskPriority.Medium, filters),
+            Priority = nameof(TaskPriority.Medium)
+        });
+        priorities.Add(new TaskReportResponseDto.TaskPriorityCount
+        {
+            Count = await baseRepository.GetTaskCountByPriorityAsync(TaskPriority.High, filters),
+            Priority = nameof(TaskPriority.High)
+        });
+        report.ByPriority = priorities;
+
+        var statuses = new List<TaskReportResponseDto.TaskStatusCount>();
+        statuses.Add(new TaskReportResponseDto.TaskStatusCount
+        {
+            Count = await baseRepository.GetTaskCountByStatusAsync(TaskStatus.Pending, filters),
+            Status = nameof(TaskStatus.Pending)
+        });
+        statuses.Add(new TaskReportResponseDto.TaskStatusCount
+        {
+            Count = await baseRepository.GetTaskCountByStatusAsync(TaskStatus.InProgress, filters),
+            Status = nameof(TaskStatus.InProgress)
+        });
+        statuses.Add(new TaskReportResponseDto.TaskStatusCount
+        {
+            Count = await baseRepository.GetTaskCountByStatusAsync(TaskStatus.Completed, filters),
+            Status = nameof(TaskStatus.Completed)
+        });
+        statuses.Add(new TaskReportResponseDto.TaskStatusCount
+        {
+            Count = await baseRepository.GetTaskCountByStatusAsync(TaskStatus.Cancelled, filters),
+            Status = nameof(TaskStatus.Cancelled)
+        });
+        report.ByStatus = statuses;
+
+        report.Total = await baseRepository.GetTotalTaskCountAsync(filters);
+        report.OverDue = await baseRepository.GetOverDueCountAsync(filters);
+        report.DueToday = await baseRepository.GetDueTodayCountAsync(filters);
+        report.Deleted = await baseRepository.GetDeletedTaskCountAsync(filters);
+
+        return report;
     }
 }

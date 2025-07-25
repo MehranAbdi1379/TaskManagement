@@ -16,4 +16,5 @@ public interface ITaskService
     Task<BaseNotification> RespondToTaskAssignmentAsync(int requestId, bool accept);
     Task<List<TaskAssignedUserResponseDto>> GetTaskAssignedUsers(int taskId);
     Task<BaseNotification> UnassignTaskAsync(int taskId, int userId);
+    Task<TaskReportResponseDto> GetTaskReport(TaskReportQueryDto dto);
 }
